@@ -38,24 +38,11 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
             <p className="details-hi"><span lang="hi">{t.hi}</span>{t.alias && ` · ${t.alias}`}</p>
           </header>
 
-          {/* The Tirthankara and their identifying symbol, side by side */}
+          {/* The Tirthankara, with their symbol in a medallion below (as on an idol's pedestal) */}
           <div className="details-hero">
-            <figure className="hero-tile hero-tile--figure">
-              <div className="hero-art"><Figure colour={t.colour} /></div>
-              <figcaption>
-                <span className="hero-label">Tirthankara</span>
-                {t.name}
-              </figcaption>
-            </figure>
-            <figure className="hero-tile hero-tile--symbol">
-              <div className="hero-art"><img src={BASE + t.symbol} alt={t.emblem} /></div>
-              <figcaption>
-                <span className="hero-label">Lanchhan · Symbol</span>
-                {t.emblem}
-              </figcaption>
-            </figure>
+            <div className="hero-figure"><Figure colour={t.colour} /></div>
+            <div className="hero-symbol"><img src={BASE + t.symbol} alt={t.emblem} /></div>
           </div>
-          <p className="hero-note">Idols of the Tirthankaras look alike; each is recognised by the symbol carved on its pedestal.</p>
 
           <dl className="details-facts">
             <div><dt>Colour</dt><dd><span className="swatch" style={{ background: colour.hex }} />{colour.label}</dd></div>
