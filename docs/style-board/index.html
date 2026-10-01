@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style Board — Moksha Bhumi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---- Proposed design tokens ------------------------------------------- */
+  :root {
+    --paper: #F4ECDD;
+    --paper-2: #EADFC8;
+    --ink: #2A1D14;
+    --ink-2: #5C4A3A;
+    --sindoor: #A8362A;
+    --sindoor-2: #8A2A20;
+    --lapis: #1F2D5C;
+    --lapis-2: #2C3E78;
+    --gold: #B08A3C;
+    --leaf: #4E6A3A;
+
+    --r-sm: 6px;
+    --r-md: 14px;
+
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+
+    --display: 'Tiro Devanagari Hindi', Georgia, serif;
+    --body: 'Mukta', system-ui, sans-serif;
+
+    /* subtle paper grain */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #E6DCC8 var(--grain);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding: var(--s7) var(--s5) var(--s8);
+  }
+  .board { max-width: 1120px; margin: 0 auto; }
+
+  /* Manuscript border strip (hand-inked feel) */
+  .border-strip {
+    height: 22px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='22'%3E%3Crect width='28' height='22' fill='%23A8362A'/%3E%3Cpath d='M0 3.5h28M0 18.5h28' stroke='%23B08A3C' stroke-width='1.2'/%3E%3Cpath d='M14 6.5c2.6 2 2.6 6.5 0 9-2.6-2.5-2.6-7 0-9z' fill='%23F4ECDD'/%3E%3Ccircle cx='3' cy='11' r='1.4' fill='%23F4ECDD'/%3E%3Ccircle cx='25' cy='11' r='1.4' fill='%23F4ECDD'/%3E%3C/svg%3E") repeat-x;
+    border-radius: 2px;
+  }
+
+  header.top { margin-bottom: var(--s7); }
+  .eyebrow { font-size: 14px; font-weight: 600; color: var(--sindoor); }
+  h1 { font-family: var(--display); font-weight: 400; font-size: 48px; line-height: 1.1; margin: var(--s2) 0 var(--s3); }
+  .lead { font-size: 18px; color: var(--ink-2); max-width: 720px; }
+
+  section { margin-top: var(--s8); }
+  h2 {
+    font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.2;
+    display: flex; align-items: baseline; gap: var(--s3);
+    padding-bottom: var(--s3); margin-bottom: var(--s5);
+    border-bottom: 1px solid rgba(176, 138, 60, 0.5);
+  }
+  h2 .num { font-family: var(--body); font-size: 14px; font-weight: 600; color: var(--sindoor); }
+  .note { font-size: 15px; color: var(--ink-2); margin-top: var(--s3); max-width: 760px; }
+
+  .panel { background: var(--paper) var(--grain); border-radius: var(--r-md); padding: var(--s5); border: 1px solid rgba(176, 138, 60, 0.35); }
+
+  /* 1. Palette */
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s4); }
+  .swatch { border-radius: var(--r-md); overflow: hidden; border: 1px solid rgba(42, 29, 20, 0.12); background: var(--paper); }
+  .swatch .chip { height: 96px; }
+  .swatch .meta { padding: var(--s3) var(--s3) var(--s4); }
+  .swatch b { display: block; font-size: 16px; }
+  .swatch code { font-size: 13px; color: var(--ink-2); }
+  .swatch p { font-size: 14px; color: var(--ink-2); line-height: 1.4; margin-top: var(--s1); }
+
+  /* 2. Type */
+  .type-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: var(--s5); }
+  .specimen-big { font-family: var(--display); font-size: 64px; line-height: 1; }
+  .specimen-hi { font-family: var(--display); font-size: 40px; line-height: 1.2; color: var(--ink-2); margin-top: var(--s2); }
+  .scale div { display: flex; align-items: baseline; gap: var(--s4); padding: var(--s2) 0; border-bottom: 1px dashed rgba(176, 138, 60, 0.4); }
+  .scale span:first-child { width: 48px; flex: none; font-size: 13px; color: var(--ink-2); }
+  .numerals { display: flex; gap: var(--s5); margin-top: var(--s4); font-family: var(--display); font-size: 28px; }
+  .numerals small { display: block; font-family: var(--body); font-size: 13px; color: var(--ink-2); }
+
+  /* 3. Shape + spacing */
+  .shape-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s5); align-items: end; }
+  .shape { text-align: center; font-size: 14px; color: var(--ink-2); }
+  .shape .s { margin: 0 auto var(--s3); background: var(--lapis); }
+  .arch { width: 120px; height: 150px; border-radius: 60px 60px var(--r-sm) var(--r-sm); background: var(--lapis) !important; position: relative; }
+  .arch::after { content: ""; position: absolute; inset: 7px; border-radius: 54px 54px 3px 3px; border: 1px solid var(--gold); }
+  .spacing { display: flex; align-items: end; gap: var(--s4); margin-top: var(--s5); }
+  .spacing > div { display: flex; flex-direction: column; align-items: center; }
+  .spacing > div > div { background: var(--sindoor); opacity: 0.85; width: 22px; border-radius: 2px; }
+  .spacing span { display: block; font-size: 12px; color: var(--ink-2); text-align: center; margin-top: var(--s1); }
+
+  /* 4. Components */
+  .comp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s5); }
+  .comp { background: var(--paper) var(--grain); border-radius: var(--r-md); padding: var(--s5); border: 1px solid rgba(176, 138, 60, 0.35); }
+  .comp h4 { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-bottom: var(--s4); }
+  .comp.dark { background: var(--lapis); color: #F4ECDD; border-color: transparent; }
+  .comp.dark h4 { color: #C9BFA9; }
+
+  .toggle { display: inline-flex; padding: 3px; border-radius: var(--r-sm); background: rgba(244, 236, 221, 0.12); border: 1px solid rgba(244, 236, 221, 0.3); }
+  .toggle button { font: 600 15px var(--body); padding: var(--s2) var(--s4); border: 0; border-radius: 4px; background: transparent; color: #F4ECDD; }
+  .toggle button.on { background: var(--sindoor); color: #fff; }
+  .toggle small { display: block; font-weight: 400; font-size: 12px; opacity: 0.8; }
+
+  .btn { font: 600 16px var(--body); padding: var(--s3) var(--s5); border-radius: var(--r-sm); border: 0; background: var(--sindoor); color: #fff; }
+  .btn.ghost { background: transparent; color: var(--sindoor); border: 1.5px solid var(--sindoor); margin-left: var(--s2); }
+  .chips { display: flex; gap: var(--s2); flex-wrap: wrap; margin-top: var(--s4); }
+  .chips span { font-size: 14px; padding: var(--s1) var(--s3); border-radius: var(--r-sm); background: var(--paper-2); border: 1px solid rgba(176, 138, 60, 0.4); }
+
+  .slider { display: flex; align-items: center; gap: var(--s5); }
+  .rail { position: relative; width: 36px; height: 180px; border-left: 1.5px solid rgba(244, 236, 221, 0.5); margin-left: 18px; }
+  .rail i { position: absolute; left: -5px; width: 9px; height: 1.5px; background: rgba(244, 236, 221, 0.6); }
+  .rail i.big { width: 14px; left: -7px; background: #F4ECDD; }
+  .bead { position: absolute; left: -17px; top: 98px; width: 32px; height: 32px; border-radius: 50%; background: var(--sindoor); color: #fff; font: 600 15px var(--body); display: grid; place-items: center; border: 2px solid #F4ECDD; }
+  .details-btn { width: 56px; height: 64px; border-radius: 28px 28px var(--r-sm) var(--r-sm); background: var(--sindoor); display: grid; place-items: center; border: 2px solid #F4ECDD; }
+  .details-btn svg { width: 26px; stroke: #fff; fill: none; stroke-width: 2; }
+
+  /* 5. Card before/after */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s6); align-items: start; }
+  .compare figure { margin: 0; }
+  .compare figcaption { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-bottom: var(--s3); }
+  .phone { width: 390px; max-width: 100%; height: 844px; margin: 0 auto; border-radius: 28px; overflow: hidden; border: 8px solid #1b1612; background: #000; box-shadow: 0 20px 50px rgba(42, 29, 20, 0.25); }
+  .phone img.shot { width: 100%; display: block; }
+
+  /* proposed card (after) */
+  .card { height: 100%; overflow: hidden; background: var(--paper) var(--grain); color: var(--ink); }
+  .card .hero { position: relative; padding: var(--s7) var(--s4) 0; display: flex; flex-direction: column; align-items: center; background: var(--paper-2) var(--grain); }
+  .card .bar { position: absolute; top: 0; left: 0; right: 0; }
+  .card .back { position: absolute; top: 34px; left: var(--s4); width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(42, 29, 20, 0.25); display: grid; place-items: center; background: var(--paper); }
+  .card .back svg { width: 18px; stroke: var(--ink); fill: none; stroke-width: 2.4; }
+  .card .count { position: absolute; top: 40px; right: var(--s4); font: 400 18px var(--display); color: var(--ink-2); }
+  .card .niche { width: 250px; height: 300px; border-radius: 125px 125px var(--r-sm) var(--r-sm); background: var(--lapis); position: relative; overflow: hidden; }
+  .card .niche::before { content: ""; position: absolute; inset: 8px; border-radius: 117px 117px 3px 3px; border: 1px solid rgba(176, 138, 60, 0.8); z-index: 2; }
+  .card .glow { position: absolute; left: 50%; top: 14%; width: 220px; height: 220px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 236, 190, 0.85), rgba(176, 138, 60, 0.25) 60%, transparent); }
+  .card .stack { position: absolute; left: 50%; bottom: 14px; width: 92%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+  .card .stack .fig { width: 76%; margin-bottom: -7%; position: relative; z-index: 1; filter: sepia(.35) saturate(1.25) brightness(1.08); }
+  .card .stack .ped { width: 100%; }
+  .card .seal { width: 96px; height: 96px; margin-top: -48px; position: relative; z-index: 3; border-radius: 50%; background: var(--paper); border: 2px solid var(--sindoor); box-shadow: 0 0 0 4px var(--paper-2); display: grid; place-items: center; }
+  .card .seal img { width: 76%; }
+  .card .title { text-align: center; padding: var(--s4) var(--s4) 0; }
+  .card .title p { font-size: 14px; font-weight: 600; color: var(--sindoor); }
+  .card .title h3 { font: 400 40px/1.1 var(--display); margin-top: var(--s1); }
+  .card .title .hi { font: 400 22px/1.3 var(--display); color: var(--ink-2); }
+  .card .facts { margin: var(--s5) var(--s4) 0; border-top: 1px solid rgba(176, 138, 60, 0.6); }
+  .card .facts div { display: flex; justify-content: space-between; gap: var(--s4); padding: var(--s3) 0; border-bottom: 1px solid rgba(176, 138, 60, 0.35); font-size: 16px; }
+  .card .facts dt { color: var(--ink-2); }
+  .card .facts dd { font-weight: 600; text-align: right; }
+
+  /* 6. Copy */
+  .copy { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); }
+  .copy div { padding: var(--s4); border-radius: var(--r-md); font-size: 16px; }
+  .copy .old { background: rgba(42, 29, 20, 0.06); color: var(--ink-2); text-decoration: line-through; text-decoration-color: rgba(168, 54, 42, 0.5); }
+  .copy .new { background: var(--paper) var(--grain); border: 1px solid rgba(176, 138, 60, 0.35); }
+  .copy small { display: block; font-size: 12px; font-weight: 600; text-decoration: none; color: var(--sindoor); margin-bottom: var(--s1); }
+
+  .decide { margin-top: var(--s8); padding: var(--s5); border-radius: var(--r-md); background: var(--lapis); color: #F4ECDD; }
+  .decide h2 { color: #F4ECDD; border-color: rgba(244, 236, 221, 0.25); }
+  .decide ol { padding-left: var(--s5); }
+  .decide li { margin: var(--s2) 0; }
+
+  @media (max-width: 900px) {
+    .swatches { grid-template-columns: repeat(3, 1fr); }
+    .type-grid, .compare, .copy { grid-template-columns: 1fr; }
+    .comp-grid, .shape-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="border-strip"></div>
+  <header class="top" style="margin-top:24px">
+    <p class="eyebrow">Style board · for review before any change</p>
+    <h1>Moksha Bhumi — a museum look, not an app look</h1>
+    <p class="lead">Colours taken from Jain manuscript painting, one typeface family for English and Hindi, three corner sizes, an 8-point spacing grid, and a few hand-made details. Nothing below is in the app yet.</p>
+  </header>
+
+  <!-- 1. Palette -->
+  <section>
+    <h2><span class="num">01</span> Colour — from the Kalpasutra page</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:#F4ECDD"></div><div class="meta"><b>Paper</b><code>#F4ECDD</code><p>Cards, detail page</p></div></div>
+      <div class="swatch"><div class="chip" style="background:#2A1D14"></div><div class="meta"><b>Ink</b><code>#2A1D14</code><p>All body text</p></div></div>
+      <div class="swatch"><div class="chip" style="background:#A8362A"></div><div class="meta"><b>Sindoor</b><code>#A8362A</code><p>The one accent: active, buttons</p></div></div>
+      <div class="swatch"><div class="chip" style="background:#1F2D5C"></div><div class="meta"><b>Lapis</b><code>#1F2D5C</code><p>Dark surfaces, map frame</p></div></div>
+      <div class="swatch"><div class="chip" style="background:#B08A3C"></div><div class="meta"><b>Gold leaf</b><code>#B08A3C</code><p>Thin lines and ornament only</p></div></div>
+      <div class="swatch"><div class="chip" style="background:#4E6A3A"></div><div class="meta"><b>Leaf</b><code>#4E6A3A</code><p>Kevala tree section</p></div></div>
+    </div>
+    <p class="note">Flat colours instead of gradients. Gold stops being a fill (no gold buttons, no gold text). One accent colour, sindoor red, marks everything you can tap or what is selected.</p>
+  </section>
+
+  <!-- 2. Type -->
+  <section>
+    <h2><span class="num">02</span> Type — Tiro Devanagari Hindi + Mukta</h2>
+    <div class="type-grid">
+      <div class="panel">
+        <div class="specimen-big">Shantinath</div>
+        <div class="specimen-hi">शांतिनाथ · सोलहवें तीर्थंकर</div>
+        <p style="margin-top:16px;font-size:18px">Shanti means “peace”. Shantinath was born in Hastinapur, and Jain tradition holds that he was also a chakravarti before renouncing the world. <span style="color:var(--ink-2)">— Mukta, 18 px body</span></p>
+        <div class="numerals">
+          <div>1 · 16 · 24<small>Latin numerals</small></div>
+          <div>१ · १६ · २४<small>Devanagari (optional)</small></div>
+        </div>
+      </div>
+      <div class="panel scale">
+        <div><span>48</span><span style="font:400 48px/1.1 var(--display)">Janma Bhumi</span></div>
+        <div><span>36</span><span style="font:400 36px/1.1 var(--display)">Mahavira</span></div>
+        <div><span>28</span><span style="font:400 28px/1.2 var(--display)">The Great Hero</span></div>
+        <div><span>22</span><span style="font:400 22px var(--display)">Kevala Vriksha</span></div>
+        <div><span>18</span><span style="font-size:18px">Body text for stories</span></div>
+        <div><span>16</span><span style="font-size:16px">Facts and labels</span></div>
+        <div><span>14</span><span style="font-size:14px;color:var(--ink-2)">Smallest size anywhere</span></div>
+      </div>
+    </div>
+    <p class="note">The heading face covers both English and Hindi from one design, so the two scripts finally match. Labels use sentence case instead of spaced capitals, and nothing is smaller than 14 px.</p>
+  </section>
+
+  <!-- 3. Shape & spacing -->
+  <section>
+    <h2><span class="num">03</span> Shape &amp; spacing</h2>
+    <div class="panel">
+      <div class="shape-grid">
+        <div class="shape"><div class="s" style="width:96px;height:56px;border-radius:6px"></div>6 px — chips, small buttons</div>
+        <div class="shape"><div class="s" style="width:120px;height:90px;border-radius:14px"></div>14 px — cards, panels</div>
+        <div class="shape"><div class="s" style="width:64px;height:64px;border-radius:50%"></div>Circle — round icon buttons</div>
+        <div class="shape"><div class="s arch"></div>Arch — the signature shape</div>
+      </div>
+      <div class="spacing">
+        <div><div style="height:4px"></div><span>4</span></div>
+        <div><div style="height:8px"></div><span>8</span></div>
+        <div><div style="height:12px"></div><span>12</span></div>
+        <div><div style="height:16px"></div><span>16</span></div>
+        <div><div style="height:24px"></div><span>24</span></div>
+        <div><div style="height:32px"></div><span>32</span></div>
+        <div><div style="height:48px"></div><span>48</span></div>
+        <div><div style="height:64px"></div><span>64</span></div>
+        <p style="font-size:14px;color:var(--ink-2);margin-left:8px">Every gap and padding comes from this scale. Cards: 24 px padding (16 px on phones). Sections: 48 px apart.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Components -->
+  <section>
+    <h2><span class="num">04</span> Controls</h2>
+    <div class="comp-grid">
+      <div class="comp dark">
+        <h4>Birth / Moksha toggle</h4>
+        <div class="toggle"><button class="on">Birth place<small>जन्म स्थान</small></button><button>Moksha place<small>मोक्ष स्थान</small></button></div>
+        <p style="font-size:14px;color:#C9BFA9;margin-top:16px">Squared-off segments, solid sindoor for the active one. No glow, no glass.</p>
+      </div>
+      <div class="comp">
+        <h4>Buttons &amp; chips</h4>
+        <button class="btn">Read more</button><button class="btn ghost">Back to map</button>
+        <div class="chips"><span>Ayodhya</span><span>Hastinapur</span><span>Sammed Shikharji</span></div>
+      </div>
+      <div class="comp dark">
+        <h4>Timeline slider &amp; Details button</h4>
+        <div class="slider">
+          <div class="rail">
+            <i class="big" style="top:0"></i><i style="top:22px"></i><i style="top:44px"></i><i style="top:66px"></i><i style="top:88px"></i><i class="big" style="top:110px"></i><i style="top:132px"></i><i style="top:154px"></i><i class="big" style="top:178px"></i>
+            <span class="bead">16</span>
+          </div>
+          <div class="details-btn"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M9 8h7M9 11.5h5"/></svg></div>
+        </div>
+        <p style="font-size:14px;color:#C9BFA9;margin-top:16px">A plain ruler on a line, sindoor bead. Details button takes the arch shape.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Card before / after -->
+  <section>
+    <h2><span class="num">05</span> The detail card, before and after</h2>
+    <div class="compare">
+      <figure>
+        <figcaption>Now</figcaption>
+        <div class="phone"><img class="shot" src="before-card.png" alt="Current detail card"></div>
+      </figure>
+      <figure>
+        <figcaption>Proposed</figcaption>
+        <div class="phone">
+          <div class="card">
+            <div class="hero">
+              <div class="border-strip bar"></div>
+              <span class="back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span class="count">१६ / २४</span>
+              <div class="niche">
+                <span class="glow"></span>
+                <div class="stack">
+                  <img class="fig" src="../../public/assets/scene/figure.webp" alt="">
+                  <img class="ped" src="../../public/assets/scene/pedestal.webp" alt="">
+                </div>
+              </div>
+              <div class="seal"><img src="../../public/assets/symbols/16.webp" alt="Deer"></div>
+            </div>
+            <div class="title">
+              <p>16th Tirthankara</p>
+              <h3>Shantinath</h3>
+              <div class="hi">शांतिनाथ</div>
+            </div>
+            <dl class="facts">
+              <div><dt>Symbol</dt><dd>Deer</dd></div>
+              <div><dt>Parents</dt><dd>Visvasena &amp; Achira</dd></div>
+              <div><dt>Born in</dt><dd>Hastinapur</dd></div>
+              <div><dt>Moksha at</dt><dd>Sammed Shikharji</dd></div>
+            </dl>
+          </div>
+        </div>
+      </figure>
+    </div>
+    <p class="note">The niche becomes lapis with a thin gold line, like a painted shrine. The symbol seal gets a sindoor ring. Facts become a simple ruled list, the way a museum label is set, instead of boxed tiles with icons.</p>
+  </section>
+
+  <!-- 6. Human touches -->
+  <section>
+    <h2><span class="num">06</span> Human touches</h2>
+    <div class="panel" style="margin-bottom:16px">
+      <div class="border-strip"></div>
+      <p class="note" style="margin-top:12px">Manuscript border, drawn by hand in SVG: sindoor band, gold rules, lotus buds. Used only at the top of the detail page and as a section divider. Cards also carry a faint paper grain, as on this board.</p>
+    </div>
+    <div class="copy">
+      <div class="old"><small>Now</small>Discover the sacred places where the 24 Tirthankaras of our time cycle were born.</div>
+      <div class="new"><small>Proposed</small>Where the 24 Tirthankaras were born. Tap one to step into their story.</div>
+      <div class="old"><small>Now</small>Pinch or drag to explore the map</div>
+      <div class="new"><small>Proposed</small>Pinch to look closer</div>
+      <div class="old"><small>Now</small>Pulsing rings on pins, Details button and slider</div>
+      <div class="new"><small>Proposed</small>Still by default; one gentle hint the first time only</div>
+    </div>
+    <p class="note">Plus a small credit line at the end of each detail page — “Content reviewed by …” with the museum’s name — as any real institution would print on its labels.</p>
+  </section>
+
+  <div class="decide">
+    <h2><span class="num" style="color:#F4ECDD">✓</span> To decide</h2>
+    <ol>
+      <li>Manuscript palette (sindoor + lapis + paper), or stay gold-led?</li>
+      <li>Tiro Devanagari Hindi + Mukta?</li>
+      <li>Devanagari numerals (१–२४) — on, off, or both?</li>
+      <li>Museum name for the credit line (or a placeholder)?</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

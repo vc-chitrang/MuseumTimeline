@@ -12,12 +12,12 @@ const IDLE_RESET_MS = 90_000;
 const COPY: Record<Mode, { title: string; subtitle: string; hi: string }> = {
   birth: {
     title: 'Janma Bhumi',
-    subtitle: 'Discover the sacred places where the 24 Tirthankaras of our time cycle were born.',
+    subtitle: 'Where the 24 Tirthankaras were born. Tap one to step into their story.',
     hi: 'चौबीस तीर्थंकरों की जन्म भूमि'
   },
   moksha: {
     title: 'Moksha Bhumi',
-    subtitle: 'Discover the sacred places where the 24 Tirthankaras of our time cycle attained moksha (liberation).',
+    subtitle: 'Where the 24 Tirthankaras attained moksha. Tap one to step into their story.',
     hi: 'चौबीस तीर्थंकरों की मोक्ष भूमि'
   }
 };
@@ -29,8 +29,19 @@ export default function App() {
   const [mode, setMode] = useState<Mode>('birth');
   const [selection, setSelection] = useState<Selection>(null);
   const [hint, setHint] = useState(false);
-  /** Tirthankara shown full-screen (null = map). */
+  /** Tirthankara shown full-screen (null = map), and which opening it is. */
   const [viewId, setViewId] = useState<number | null>(null);
+  const [viewSession, setViewSession] = useState(0);
+  const sessionRef = useRef(0);
+  const openView = useCallback((id: number) => {
+    sessionRef.current += 1;
+    setViewSession(sessionRef.current);
+    setViewId(id);
+  }, []);
+  // A view that is still fading out must not close one opened after it.
+  const closeView = useCallback((session: number) => {
+    if (session === sessionRef.current) setViewId(null);
+  }, []);
 
   const onImageLoad = useCallback(() => setReady(true), []);
   const onInteract = useCallback(() => setHint(false), []);
@@ -70,9 +81,9 @@ export default function App() {
   /** Selection from the map, cards or controls. */
   const select = useCallback((sel: Selection) => {
     // Tirthankara portraits open their full-screen view instead of a card.
-    if (sel?.kind === 'tirthankara') { setHint(false); setViewId(sel.id); return; }
+    if (sel?.kind === 'tirthankara') { setHint(false); openView(sel.id); return; }
     show(sel);
-  }, [show]);
+  }, [openView, show]);
 
   const changeMode = useCallback((m: Mode) => {
     setSelection(null);
@@ -102,7 +113,7 @@ export default function App() {
         onImageLoad={onImageLoad} onInteract={onInteract} />
 
       <header className="app-header">
-        <p className="eyebrow">24 Tirthankaras · Interactive Map</p>
+        <p className="eyebrow">The 24 Tirthankaras</p>
         <h1 className="title" key={mode}>{COPY[mode].title}</h1>
         <p className="subtitle">{COPY[mode].subtitle}</p>
         <p className="subtitle-hi" lang="hi">{COPY[mode].hi}</p>
@@ -114,16 +125,18 @@ export default function App() {
         <button type="button" className="zoom-btn zoom-btn--reset" aria-label="Reset map" onClick={() => select(null)}>⤢</button>
       </div>
 
-      <p className={`hint${hint ? ' is-visible' : ''}`}>Pinch or drag to explore the map</p>
+      <p className={`hint${hint ? ' is-visible' : ''}`}>Pinch to look closer</p>
 
       <InfoCard ref={cardRef} mode={mode} selection={selection}
-        onOpenTirthankara={setViewId} onBack={() => select(null)} />
+        onOpenTirthankara={openView} onBack={() => select(null)} />
 
       <div className="bottom-bar">
         <ModeToggle mode={mode} onChange={changeMode} />
       </div>
 
-      {viewId !== null && <TirthankaraView key="tview" id={viewId} onClose={() => setViewId(null)} />}
+      {viewId !== null && (
+        <TirthankaraView key={viewSession} id={viewId} onClose={() => closeView(viewSession)} />
+      )}
     </div>
   );
 }

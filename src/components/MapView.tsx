@@ -149,8 +149,8 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                 <defs>
                   <linearGradient id="beamGradient" gradientUnits="userSpaceOnUse"
                     x1={HUB.x} y1={HUB.y} x2={shikharji.x} y2={shikharji.y}>
-                    <stop offset="0" stopColor="#f7dc8f" stopOpacity="0.25" />
-                    <stop offset="1" stopColor="#fff3c7" stopOpacity="1" />
+                    <stop offset="0" stopColor="#D6B771" stopOpacity="0.3" />
+                    <stop offset="1" stopColor="#F4ECDD" stopOpacity="1" />
                   </linearGradient>
                 </defs>
                 <ellipse className="ring-orbit ring-orbit--outer" cx={HUB.x} cy={HUB.y} rx={ringGeom.rx + 70} ry={ringGeom.ry + 70} />
@@ -184,19 +184,17 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                   <div className="marker-scale">
                     {mode === 'moksha' && p.key === 'shikharji' ? (
                       <>
-                        <span className="summit-halo" />
                         <button type="button" className={`summit${on(activePlace === p.key)}`} aria-label={aria} onClick={select}>
                           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20 9.5 7l3.5 6 2.5-4L22 20z" /></svg>
                         </button>
                       </>
                     ) : mode === 'moksha' ? (
                       <>
-                        <span className="pin-pulse" />
                         <button type="button" className={`pin${on(activePlace === p.key)}`} aria-label={aria} onClick={select}>
                           <svg viewBox="0 0 32 46" aria-hidden="true">
                             <path d="M16 45C16 45 2 27 2 16a14 14 0 0 1 28 0c0 11-14 29-14 29z"
-                              fill="url(#pinGradient)" stroke="#fff3d6" strokeWidth="2" />
-                            <circle cx="16" cy="16" r="6" fill="#fff3d6" />
+                              fill="url(#pinGradient)" stroke="#F4ECDD" strokeWidth="2" />
+                            <circle cx="16" cy="16" r="6" fill="#F4ECDD" />
                           </svg>
                         </button>
                       </>
@@ -259,8 +257,8 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
       <svg width="0" height="0" className="sr-defs" aria-hidden="true">
         <defs>
           <linearGradient id="pinGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#f08a4b" />
-            <stop offset="1" stopColor="#b8401c" />
+            <stop offset="0" stopColor="#C2473A" />
+            <stop offset="1" stopColor="#8A2A20" />
           </linearGradient>
         </defs>
       </svg>

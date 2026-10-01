@@ -3,6 +3,7 @@ import { TIRTHANKARAS, type Tirthankara } from '../../data/tirthankaras';
 import { treeImage } from '../../data/details';
 import { DetailsModal } from './DetailsModal';
 import { Scrubber } from './Scrubber';
+import { BackButton } from '../BackButton';
 import { Birds, Figure, SCENE, Sky } from './SceneArt';
 
 const BASE = import.meta.env.BASE_URL;
@@ -290,9 +291,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
         {n && <h1 key={n.id} className="tview-title is-in" aria-hidden="true">{n.name}</h1>}
       </div>
 
-      <button type="button" className="tview-back" aria-label="Back to map" onClick={close}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-      </button>
+      <BackButton className="tview-back" label="Back to map" onClick={close} />
 
       <Scrubber current={cur} onJump={goTo} />
 

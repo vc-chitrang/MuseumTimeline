@@ -238,10 +238,10 @@
 /* Name (the only text on the scene) --------------------------------------- */
 .tview-name {
   position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 26px);
+  top: calc(env(safe-area-inset-top, 0px) + var(--s5));
   left: 76px;
   right: 76px;
-  height: 90px;
+  height: 84px;
   pointer-events: none;
   z-index: 5;
 }
@@ -252,53 +252,39 @@
   place-items: center;
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(42px, 5.8vh, 78px);
+  font-weight: 400;
+  font-size: clamp(40px, 5.6vh, 72px);
   line-height: 1;
   white-space: nowrap;
-  color: #4a2508;
-  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.55), 0 0 26px rgba(255, 248, 225, 0.95);
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 22px rgba(244, 236, 221, 0.95);
 }
-.tview.is-opening .tview-title:not(.is-in) { animation: title-drop 0.9s 0.35s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
-@keyframes title-drop { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: none; } }
+.tview.is-opening .tview-title:not(.is-in) { animation: title-drop 0.8s 0.35s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes title-drop { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
 .tview-title.is-in { opacity: 0; }
-
-/* Soft light behind the name keeps it readable over foliage */
+/* Soft paper-coloured light behind the name keeps it readable over foliage */
 .tview-name::before {
   content: "";
   position: absolute;
-  inset: -18px 8%;
+  inset: -16px 10%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 250, 235, 0.85), rgba(255, 250, 235, 0.45) 60%, transparent);
+  background: radial-gradient(closest-side, rgba(244, 236, 221, 0.85), rgba(244, 236, 221, 0.4) 60%, transparent);
   filter: blur(6px);
 }
 
 /* Back button -------------------------------------------------------------- */
 .tview-back {
   position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 22px);
-  left: 18px;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+  top: calc(env(safe-area-inset-top, 0px) + var(--s5));
+  left: var(--s4);
   z-index: 6;
-  background: rgba(255, 255, 255, 0.38);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px rgba(30, 40, 70, 0.25);
-  transition: transform 0.2s ease, background 0.2s ease;
 }
-.tview-back svg { width: 22px; height: 22px; fill: none; stroke: #2c2a3a; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.tview-back:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.6); }
-.tview.is-opening .tview-back { animation: title-drop 0.7s 0.2s ease both; }
+.tview.is-opening .tview-back { animation: title-drop 0.6s 0.2s ease both; }
 
-/* Timeline scrubber ------------------------------------------------------- */
+/* Timeline scrubber: a plain ruler on a lapis strip ----------------------- */
 .scrub {
   position: absolute;
-  right: 12px;
+  right: var(--s3);
   top: 50%;
   transform: translateY(-50%);
   z-index: 6;
@@ -306,150 +292,134 @@
   flex-direction: column;
   align-items: center;
   width: 46px;
-  padding: 4px 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(20, 26, 52, 0.42), rgba(20, 26, 52, 0.28));
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  box-shadow: 0 10px 28px rgba(15, 20, 45, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  padding: var(--s1) 0;
+  border-radius: var(--r-md);
+  background: rgba(22, 33, 74, 0.82);
+  border: 1px solid rgba(244, 236, 221, 0.25);
+  box-shadow: 0 8px 22px rgba(10, 14, 32, 0.3);
 }
-.tview.is-opening .scrub { animation: rail-in 0.8s 0.6s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
-@keyframes rail-in { from { opacity: 0; transform: translate(30px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
+.tview.is-opening .scrub { animation: rail-in 0.7s 0.6s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes rail-in { from { opacity: 0; transform: translate(24px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
 
 .scrub-step {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--r-sm);
   display: grid;
   place-items: center;
-  color: rgba(255, 247, 220, 0.9);
+  color: var(--on-dark);
   transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
-.scrub-step svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.scrub-step:active { transform: scale(0.86); background: rgba(255, 255, 255, 0.18); }
-.scrub-step:disabled { opacity: 0.2; }
+.scrub-step svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.scrub-step:active { transform: scale(0.88); background: rgba(244, 236, 221, 0.12); }
+.scrub-step:disabled { opacity: 0.25; }
 
 .scrub-track {
   position: relative;
   width: 46px;
   height: min(44vh, 420px);
-  margin: 10px 0;
+  margin: var(--s2) 0;
   cursor: grab;
   touch-action: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
 }
 /* Focus ring only for keyboard use, never after a tap */
-.scrub:not(.is-pointer) .scrub-track:focus-visible { box-shadow: 0 0 0 2px rgba(247, 220, 143, 0.9); border-radius: 23px; }
+.scrub:not(.is-pointer) .scrub-track:focus-visible { box-shadow: 0 0 0 2px var(--gold-light); border-radius: var(--r-sm); }
 
 .scrub-rail, .scrub-fill {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 2px;
-  border-radius: 1px;
+  width: 1.5px;
   transform: translateX(-50%);
 }
-.scrub-rail { bottom: 0; background: rgba(255, 255, 255, 0.3); }
-.scrub-fill {
-  height: calc(var(--pos) * 100%);
-  background: linear-gradient(180deg, rgba(255, 243, 199, 0.6), #ecc461);
-  transition: height 0.22s ease-out;
-}
-/* Ruler-style ticks: short dashes, longer every sixth */
+.scrub-rail { bottom: 0; background: rgba(244, 236, 221, 0.35); }
+.scrub-fill { height: calc(var(--pos) * 100%); background: var(--gold-light); transition: height 0.22s ease-out; }
+/* Ticks: short dashes, longer every sixth; gold once passed */
 .scrub-tick {
   position: absolute;
   left: 50%;
   width: 8px;
-  height: 2px;
-  margin: -1px 0 0 -4px;
-  border-radius: 1px;
-  background: rgba(255, 255, 255, 0.55);
+  height: 1.5px;
+  margin: -0.75px 0 0 -4px;
+  background: rgba(244, 236, 221, 0.55);
   pointer-events: none;
   transition: background 0.2s ease;
 }
-.scrub-tick.is-major { width: 14px; margin-left: -7px; height: 2.5px; background: rgba(255, 255, 255, 0.85); }
-.scrub-tick.is-passed { background: rgba(247, 220, 143, 0.9); }
+.scrub-tick.is-major { width: 14px; margin-left: -7px; background: var(--on-dark); }
+.scrub-tick.is-passed { background: var(--gold-light); }
 .scrub-bead {
   position: absolute;
   left: 50%;
   top: calc(var(--pos) * 100%);
-  width: 36px;
-  height: 36px;
-  margin: -18px 0 0 -18px;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 15px;
-  font-weight: 800;
-  color: #2b1b03;
-  background: radial-gradient(circle at 35% 30%, #fff4cf, #ecc461 58%, #c9952e);
-  border: 2px solid #fffaf0;
-  box-shadow: 0 4px 12px rgba(80, 50, 5, 0.45), 0 0 0 4px rgba(236, 196, 97, 0.22);
-  /* Snaps quickly to the chosen Tirthankara (no wait for the scene) */
+  font-weight: 700;
+  color: #fff;
+  background: var(--sindoor);
+  border: 2px solid var(--paper);
+  box-shadow: 0 3px 8px rgba(10, 14, 32, 0.45);
+  /* Snaps straight to the chosen Tirthankara (no wait for the scene) */
   transition: top 0.22s ease-out, transform 0.15s ease;
   pointer-events: none;
 }
-.scrub.is-scrubbing .scrub-bead { transition: transform 0.15s ease; transform: scale(1.18); }
+.scrub.is-scrubbing .scrub-bead { transition: transform 0.15s ease; transform: scale(1.15); }
 .scrub.is-scrubbing .scrub-fill { transition: none; }
 .scrub-bubble {
   position: absolute;
-  right: calc(100% + 16px);
+  right: calc(100% + var(--s4));
   top: calc(var(--pos) * 100%);
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 16px 6px 6px;
-  border-radius: 999px;
+  gap: var(--s3);
+  padding: var(--s1) var(--s4) var(--s1) var(--s1);
+  border-radius: var(--r-sm);
   white-space: nowrap;
-  background: rgba(255, 250, 238, 0.97);
-  color: #4a2508;
-  box-shadow: 0 10px 28px rgba(30, 30, 60, 0.3);
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  box-shadow: 0 8px 22px rgba(30, 30, 50, 0.3);
   pointer-events: none;
-  animation: bubble-in 0.18s ease-out;
+  animation: bubble-in 0.16s ease-out;
 }
-.scrub-bubble img { width: 44px; height: 44px; object-fit: contain; border-radius: 50%; background: radial-gradient(closest-side, #fff2cc, #f7e3b0); }
-.scrub-bubble span { display: flex; flex-direction: column; font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1; }
-.scrub-bubble b { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.14em; color: #a8761c; }
-@keyframes bubble-in { from { opacity: 0; transform: translate(10px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
+.scrub-bubble img { width: 44px; height: 44px; object-fit: contain; border-radius: var(--r-sm); background: var(--paper-2); }
+.scrub-bubble span { display: flex; flex-direction: column; font-family: var(--font-display); font-size: 22px; line-height: 1.1; }
+.scrub-bubble b { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--sindoor); }
+@keyframes bubble-in { from { opacity: 0; transform: translate(8px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
 
-/* Details button (icon only — the name stays the only text on the scene) */
+/* Details button: the arch, the app's signature shape */
 .tview-info {
   position: absolute;
-  right: 14px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
+  right: var(--s4);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s5));
   z-index: 6;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
+  width: 54px;
+  height: 64px;
+  border-radius: 27px 27px var(--r-sm) var(--r-sm);
   display: grid;
   place-items: center;
-  color: #2b1b03;
-  background: radial-gradient(circle at 35% 30%, #fff1c4, #ecc461 55%, #c9952e);
-  border: 2.5px solid #fff7dc;
-  box-shadow: 0 10px 24px rgba(120, 80, 10, 0.45);
-  transition: transform 0.15s ease;
+  color: #fff;
+  background: var(--sindoor);
+  border: 2px solid var(--paper);
+  box-shadow: 0 6px 16px rgba(60, 20, 10, 0.35);
+  transition: transform 0.15s ease, background 0.2s ease;
 }
-.tview-info::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 236, 170, 0.9);
-  animation: rail-pulse 2.4s ease-out infinite;
-}
-@keyframes rail-pulse { from { transform: scale(1); opacity: 0.9; } to { transform: scale(1.4); opacity: 0; } }
-.tview-info svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.tview-info:active { transform: scale(0.9); }
-.tview.is-opening .tview-info { animation: title-drop 0.7s 0.9s ease both; }
+.tview-info svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tview-info:active { transform: scale(0.92); background: var(--sindoor-2); }
+.tview.is-opening .tview-info { animation: title-drop 0.6s 0.9s ease both; }
 
-/* Swipe hint */
+/* Swipe hint (first open only) */
 .swipe-hint {
   position: absolute;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s4));
   z-index: 5;
   display: grid;
   justify-items: center;
@@ -460,27 +430,27 @@
 }
 .swipe-hint.is-visible { opacity: 1; transition-delay: 1.6s; }
 .swipe-hint svg {
-  width: 40px;
-  height: 22px;
+  width: 36px;
+  height: 20px;
   fill: none;
-  stroke: #fff;
-  stroke-width: 3;
+  stroke: var(--paper);
+  stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
-  animation: hint-up 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  animation: hint-up 1.8s ease-in-out infinite;
 }
 .swipe-hint svg + svg { margin-top: -8px; animation-delay: 0.15s; opacity: 0.6; }
-@keyframes hint-up { 0%, 100% { transform: translateY(6px); opacity: 0.3; } 50% { transform: translateY(-6px); opacity: 1; } }
+@keyframes hint-up { 0%, 100% { transform: translateY(5px); opacity: 0.3; } 50% { transform: translateY(-5px); opacity: 1; } }
 
 @media (max-width: 700px) {
   .tview-name { left: 84px; right: 84px; }
   .scrub { right: 6px; width: 40px; }
   .scrub-track { width: 40px; height: min(40vh, 330px); }
   .scrub-step { width: 36px; height: 36px; }
-  .scrub-bead { width: 32px; height: 32px; margin: -16px 0 0 -16px; font-size: 14px; }
-  .tview-info { width: 56px; height: 56px; }
-  .tview-back { width: 42px; height: 42px; left: 12px; }
+  .scrub-bead { width: 30px; height: 30px; margin: -15px 0 0 -15px; font-size: 14px; }
+  .tview-info { width: 50px; height: 60px; border-radius: 25px 25px var(--r-sm) var(--r-sm); right: var(--s3); }
+  .tview-back { left: var(--s3); }
 }
 @media (orientation: landscape) {
   .tview { --fig-h: 33vh; --ped-b: 7vh; }

@@ -2,27 +2,21 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { COLOURS, PLACES, TIRTHANKARAS, ordinal } from '../../data/tirthankaras';
 import { DESCRIPTIONS, KEVALA_TREES } from '../../data/details';
 import { Figure, SCENE } from './SceneArt';
+import { BackButton } from '../BackButton';
 
 const BASE = import.meta.env.BASE_URL;
 
-/** Small line icons for the facts panel. */
-const ICONS: Record<string, ReactNode> = {
-  symbol: <path d="M12 3l2.6 5.6L20 9.5l-4 4 1 5.8-5-2.8-5 2.8 1-5.8-4-4 5.4-.9z" />,
-  colour: <path d="M12 3s6 6.4 6 10.5A6 6 0 0 1 6 13.5C6 9.4 12 3 12 3z" />,
-  parents: <><circle cx="8.5" cy="8" r="3" /><circle cx="16" cy="9" r="2.5" /><path d="M3 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6M14 20c0-2.6 1.4-4.6 3-5 1.8.4 4 2.4 4 5" /></>,
-  birth: <><path d="M4 11l8-6 8 6" /><path d="M6 10v10h12V10" /><path d="M10 20v-5h4v5" /></>,
-  moksha: <><path d="M3 19l6-9 4 5 3-3 5 7z" /><circle cx="17" cy="6" r="2" /></>
-};
-
-function Fact({ icon, label, children }: { icon: string; label: string; children: ReactNode }) {
+function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="dm-fact">
-      <span className="dm-fact-icon" aria-hidden="true"><svg viewBox="0 0 24 24">{ICONS[icon]}</svg></span>
       <dt>{label}</dt>
       <dd>{children}</dd>
     </div>
   );
 }
+
+/** Devanagari digits, as printed on museum labels in Hindi. */
+const toDeva = (n: number) => String(n).replace(/\d/g, d => '०१२३४५६७८९'[Number(d)]);
 
 /** Lotus ornament used as a section divider. */
 function Ornament() {
@@ -59,10 +53,9 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
         <div className="dm-scroll">
           {/* Hero: the Tirthankara in a backlit shrine niche, symbol as a seal */}
           <header className="dm-hero">
-            <button type="button" className="dm-back" onClick={close} aria-label="Back">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-            </button>
-            <span className="dm-count">{t.id}<small>/24</small></span>
+            <div className="dm-border" aria-hidden="true" />
+            <BackButton className="dm-back" label="Back to scene" onClick={close} />
+            <span className="dm-count" aria-label={`${t.id} of 24`}>{toDeva(t.id)} / {toDeva(24)}</span>
 
             <div className="dm-niche">
               <span className="dm-niche-glow" />
@@ -83,13 +76,13 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
             </div>
 
             <dl className="dm-facts">
-              <Fact icon="symbol" label="Symbol">{t.emblem}</Fact>
-              <Fact icon="colour" label="Colour">
+              <Fact label="Symbol">{t.emblem}</Fact>
+              <Fact label="Colour">
                 <span className="dm-swatch" style={{ background: colour.hex }} />{colour.label}
               </Fact>
-              <Fact icon="parents" label="Parents">{t.parents}</Fact>
-              <Fact icon="birth" label="Birthplace">{birth.name}<small>{birth.region}</small></Fact>
-              <Fact icon="moksha" label="Moksha place">{moksha.name}<small>{moksha.region}</small></Fact>
+              <Fact label="Parents">{t.parents}</Fact>
+              <Fact label="Born in">{birth.name}<small>{birth.region}</small></Fact>
+              <Fact label="Moksha at">{moksha.name}<small>{moksha.region}</small></Fact>
             </dl>
 
             <Ornament />
