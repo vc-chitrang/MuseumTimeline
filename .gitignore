@@ -1,0 +1,16 @@
+# Dependencies & build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Raw source media (large; optimised copies live in public/assets)
+/Data/
+
+# Local concept mockups
+/mockups/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.claude/

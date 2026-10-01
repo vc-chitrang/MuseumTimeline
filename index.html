@@ -2,96 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Hello World - Museum Timeline">
-  <title>Hello World</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      overflow: hidden;
-    }
-
-    .container {
-      text-align: center;
-      position: relative;
-    }
-
-    h1 {
-      font-size: clamp(3rem, 10vw, 7rem);
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      background: linear-gradient(90deg, #a78bfa, #38bdf8, #34d399, #a78bfa);
-      background-size: 300% 100%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradientShift 4s linear infinite;
-    }
-
-    p {
-      margin-top: 1.25rem;
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 1rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
-
-    /* Floating glow orbs */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.25;
-      animation: float 8s ease-in-out infinite;
-    }
-
-    .orb-1 {
-      width: 400px;
-      height: 400px;
-      background: #a78bfa;
-      top: -100px;
-      left: -100px;
-      animation-delay: 0s;
-    }
-
-    .orb-2 {
-      width: 350px;
-      height: 350px;
-      background: #38bdf8;
-      bottom: -100px;
-      right: -100px;
-      animation-delay: -4s;
-    }
-
-    @keyframes gradientShift {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 300% 50%; }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0px) scale(1); }
-      50%       { transform: translateY(-30px) scale(1.05); }
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Interactive museum map of the moksha places of the 24 Jain Tirthankaras of the current time cycle.">
+  <meta name="theme-color" content="#0b1026">
+  <title>Moksha Bhumi · 24 Tirthankaras</title>
+  <link rel="preload" as="image" href="./assets/images/india-map.webp" type="image/webp">
 </head>
 <body>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-
-  <div class="container">
-    <h1>Hello World</h1>
-    <p>Museum Timeline &mdash; CI/CD Powered</p>
-  </div>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
