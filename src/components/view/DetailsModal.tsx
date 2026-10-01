@@ -47,10 +47,6 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
                 {t.name}
               </figcaption>
             </figure>
-            <span className="hero-link" aria-hidden="true">
-              <span>identified by</span>
-              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </span>
             <figure className="hero-tile hero-tile--symbol">
               <div className="hero-art"><img src={BASE + t.symbol} alt={t.emblem} /></div>
               <figcaption>
