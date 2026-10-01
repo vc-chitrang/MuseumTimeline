@@ -27,6 +27,8 @@ export interface CircleLayout extends Point {
   /** Name always visible (otherwise only when zoomed in or selected). */
   labelAlways: boolean;
   labelSide: LabelSide;
+  /** Push a top/bottom label further out (staggers neighbouring names). */
+  labelFar: boolean;
   /** Intro animation delay (s). */
   delay: number;
 }
@@ -37,9 +39,21 @@ export interface ModeLayout {
   bounds: { x: number; y: number; w: number; h: number };
 }
 
+/** Stagger neighbouring top / bottom labels (circles given in ring order). */
+function stagger(circles: CircleLayout[]): CircleLayout[] {
+  circles.forEach((c, i) => {
+    const prev = circles[i - 1];
+    const vertical = c.labelSide === 'top' || c.labelSide === 'bottom';
+    c.labelFar = vertical && !!prev && prev.labelSide === c.labelSide && !prev.labelFar;
+  });
+  return circles;
+}
+
 function sideFor(angle: number): LabelSide {
   const cos = Math.cos(angle), sin = Math.sin(angle);
-  return cos > 0.55 ? 'right' : cos < -0.55 ? 'left' : sin < 0 ? 'top' : 'bottom';
+  // Only portraits near the very top / bottom get stacked labels; the rest go
+  // sideways so neighbouring names never collide.
+  return cos > 0.3 ? 'right' : cos < -0.3 ? 'left' : sin < 0 ? 'top' : 'bottom';
 }
 
 // Moksha ----------------------------------------------------------------------
@@ -48,7 +62,7 @@ function sideFor(angle: number): LabelSide {
 const MOKSHA_SINGLES: Partial<Record<PlaceKey, Point>> = {
   ashtapad: { x: 760, y: 300 },
   champapuri: { x: 1580, y: 470 },
-  pavapuri: { x: 1060, y: 520 },
+  pavapuri: { x: 1010, y: 455 },
   girnar: { x: 250, y: 965 }
 };
 
@@ -64,7 +78,7 @@ function mokshaLayout(): ModeLayout {
   const ring = ringIds.map((id, i): CircleLayout => {
     const a = beamAngle + gap / 2 + i * step;
     return {
-      id, ring: true, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a),
+      id, ring: true, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a), labelFar: false,
       x: HUB.x + RING_RADIUS * Math.cos(a),
       y: HUB.y + RING_RADIUS * Math.sin(a),
       delay: 1.7 + i * 0.05
@@ -72,13 +86,13 @@ function mokshaLayout(): ModeLayout {
   });
 
   const singles = TIRTHANKARAS.filter(t => t.moksha !== 'shikharji').map((t, i): CircleLayout => ({
-    id: t.id, ring: false, size: LARGE_CIRCLE_SIZE, labelAlways: true, labelSide: 'bottom',
+    id: t.id, ring: false, size: LARGE_CIRCLE_SIZE, labelAlways: true, labelSide: 'bottom', labelFar: false,
     ...(MOKSHA_SINGLES[t.moksha] as Point),
     delay: 1.5 + i * 0.12
   }));
 
   return {
-    circles: [...ring, ...singles].sort((a, b) => a.id - b.id),
+    circles: [...stagger(ring), ...singles].sort((a, b) => a.id - b.id),
     bounds: { x: 150, y: 215, w: 1700, h: 1395 }
   };
 }
@@ -107,7 +121,7 @@ function birthLayout(): ModeLayout {
   const circles = items.map((it, i): CircleLayout => {
     const a = offset + i * step;
     return {
-      id: it.id, ring: false, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a),
+      id: it.id, ring: false, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a), labelFar: false,
       x: BIRTH_CENTRE.x + BIRTH_RX * Math.cos(a),
       y: BIRTH_CENTRE.y + BIRTH_RY * Math.sin(a),
       delay: 1.5 + ((it.id - 1) * 0.05)
@@ -115,7 +129,7 @@ function birthLayout(): ModeLayout {
   });
 
   return {
-    circles: circles.sort((a, b) => a.id - b.id),
+    circles: stagger(circles).sort((a, b) => a.id - b.id),
     bounds: { x: BIRTH_CENTRE.x - BIRTH_RX - 110, y: BIRTH_CENTRE.y - BIRTH_RY - 110, w: (BIRTH_RX + 110) * 2, h: (BIRTH_RY + 110) * 2 }
   };
 }

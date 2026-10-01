@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useRef, useState, type CSSProperties, t
 import { PLACES, TIRTHANKARAS, placeOf, placesFor, type Mode, type PlaceKey } from '../data/tirthankaras';
 import { HUB, LAYOUTS, RING_RADIUS, anchorFor, circleFor, leaderPath } from '../lib/layout';
 import { MAP_HEIGHT, MAP_WIDTH } from '../lib/projection';
-import { usePanZoom } from '../hooks/usePanZoom';
+import { usePanZoom, type PanelInset } from '../hooks/usePanZoom';
 import { EmblemBadge, Portrait } from './Portrait';
 
 export type Selection =
@@ -14,8 +14,8 @@ export interface MapHandle {
   zoomIn: () => void;
   zoomOut: () => void;
   reset: () => void;
-  /** Bring the selection into view above a panel of the given height. */
-  focusSelection: (sel: Selection, panelHeight: number) => void;
+  /** Bring the selection into view beside the detail panel. */
+  focusSelection: (sel: Selection, panel: PanelInset) => void;
 }
 
 interface Props {
@@ -70,7 +70,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
     zoomIn: () => pz.zoomBy(1.5),
     zoomOut: () => pz.zoomBy(1 / 1.5),
     reset: () => pz.reset(true),
-    focusSelection: (sel, panelHeight) => {
+    focusSelection: (sel, panel) => {
       if (!sel) return pz.reset(true);
       const around = (pts: { x: number; y: number }[], pad: number) => {
         const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
@@ -79,14 +79,14 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
       };
       if (sel.kind === 'tirthankara') {
         const c = circleFor(mode, sel.id);
-        if (c.ring) pz.focusBox({ x: c.x - 210, y: c.y - 180, w: 420, h: 360 }, panelHeight, 2.4);
-        else pz.focusBox(around([c, anchorFor(mode, sel.id)], 120), panelHeight, 2);
+        if (c.ring) pz.focusBox({ x: c.x - 210, y: c.y - 180, w: 420, h: 360 }, panel, 2.4);
+        else pz.focusBox(around([c, anchorFor(mode, sel.id)], 120), panel, 2);
       } else if (mode === 'moksha' && sel.key === 'shikharji') {
         const top = PLACES.shikharji.y - 60, bottom = HUB.y + RING_RADIUS + 80;
-        pz.focusBox({ x: HUB.x - RING_RADIUS - 120, y: top, w: (RING_RADIUS + 120) * 2, h: bottom - top }, panelHeight, 2);
+        pz.focusBox({ x: HUB.x - RING_RADIUS - 120, y: top, w: (RING_RADIUS + 120) * 2, h: bottom - top }, panel, 2);
       } else {
         const ids = TIRTHANKARAS.filter(t => placeOf(t, mode) === sel.key).map(t => t.id);
-        pz.focusBox(around([PLACES[sel.key], ...ids.map(id => circleFor(mode, id))], 120), panelHeight, 2);
+        pz.focusBox(around([PLACES[sel.key], ...ids.map(id => circleFor(mode, id))], 120), panel, 2);
       }
     }
   }), [mode, pz]);
@@ -221,7 +221,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                 <div key={c.id} className="marker marker--circle" style={pos(c.x, c.y)}>
                   <div className="marker-scale">
                     <button type="button"
-                      className={`t-circle t-circle--label-${c.labelSide}${c.labelAlways ? ' is-labelled' : ''}${on(activeIds.has(c.id))}`}
+                      className={`t-circle t-circle--label-${c.labelSide}${c.labelFar ? ' t-circle--label-far' : ''}${c.labelAlways ? ' is-labelled' : ''}${on(activeIds.has(c.id))}`}
                       style={vars({ '--size': `${c.size}px`, '--d': `${c.delay}s` })}
                       aria-label={`${t.id}. ${t.name}`}
                       onClick={() => onSelect({ kind: 'tirthankara', id: t.id })}>

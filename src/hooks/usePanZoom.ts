@@ -18,14 +18,17 @@ interface ViewState {
 
 interface FreeArea { top: number; bottom: number; width: number; height: number }
 
+/** Space taken by the detail panel: along the bottom (portrait) or the right (landscape). */
+export interface PanelInset { bottom: number; right: number }
+
 export interface PanZoomApi {
   reset: (animate?: boolean) => void;
   zoomBy: (factor: number) => void;
   /**
-   * Animate so the map box fits the free area above a bottom panel of height
-   * `panelHeight`, never zooming past `maxZ`.
+   * Animate so the map box fits the free area beside the detail panel, never
+   * zooming past `maxZ`.
    */
-  focusBox: (box: Bounds, panelHeight: number, maxZ: number) => void;
+  focusBox: (box: Bounds, panel: PanelInset, maxZ: number) => void;
   /** Free screen area between header and bottom bar. */
   freeArea: () => FreeArea;
 }
@@ -161,18 +164,21 @@ export function usePanZoom(
     animateTo(next, 400);
   }, [animateTo, freeArea, maxZoom]);
 
-  const focusBox = useCallback((box: Bounds, panelHeight: number, maxZ: number) => {
+  const focusBox = useCallback((box: Bounds, panel: PanelInset, maxZ: number) => {
     const a = freeArea();
-    const top = a.top + 12;
-    const bottom = a.bottom - panelHeight - 12;
+    // Screen margins leave room for names drawn beside / below portraits.
+    const usable = a.width - panel.right;
+    const sidePad = Math.min(130, usable * 0.16), vPad = 34;
+    const top = a.top + vPad;
+    const bottom = a.bottom - panel.bottom - vPad;
     const k0 = view.current.k0;
-    const fitK = Math.min((a.width - 48) / box.w, (bottom - top) / box.h);
+    const fitK = Math.min((usable - sidePad * 2) / box.w, (bottom - top) / box.h);
     const z = Math.max(MIN_ZOOM, Math.min(maxZ, maxZoom, fitK / k0));
     const k = k0 * z;
     const target: ViewState = {
       k0,
       z,
-      tx: a.width / 2 - (box.x + box.w / 2) * k,
+      tx: usable / 2 - (box.x + box.w / 2) * k,
       ty: (top + bottom) / 2 - (box.y + box.h / 2) * k
     };
     animateTo(clamped(target, boundsRef.current, a));

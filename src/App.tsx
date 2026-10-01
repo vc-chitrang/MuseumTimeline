@@ -5,13 +5,6 @@ import { ModeToggle } from './components/ModeToggle';
 import { PortraitSprite } from './components/Portrait';
 import type { Mode } from './data/tirthankaras';
 
-const NAV = [
-  { key: 'map', label: 'Map', icon: <><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z" /><circle cx="12" cy="10" r="2.2" /></> },
-  { key: 'timeline', label: 'Timeline', icon: <><path d="M3 20l6-10 4 6 3-4 5 8z" /><circle cx="16" cy="5" r="1.6" /></> },
-  { key: 'gallery', label: 'Gallery', icon: <><rect x="4" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" /></> },
-  { key: 'play', label: 'Play', icon: <path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z" /> }
-];
-
 /** Return to the attract state after this long without a touch (museum kiosk). */
 const IDLE_RESET_MS = 90_000;
 
@@ -35,7 +28,10 @@ export default function App() {
   const [mode, setMode] = useState<Mode>('birth');
   const [selection, setSelection] = useState<Selection>(null);
   const [hint, setHint] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  // Cards opened from inside a card, so place cards can go Back.
+  const history = useRef<Selection[]>([]);
+  const current = useRef<Selection>(null);
+  const [canGoBack, setCanGoBack] = useState(false);
 
   const onImageLoad = useCallback(() => setReady(true), []);
   const onInteract = useCallback(() => setHint(false), []);
@@ -54,16 +50,52 @@ export default function App() {
     return () => { window.clearTimeout(show); window.clearTimeout(hide); };
   }, [ready]);
 
-  const select = useCallback((sel: Selection) => {
+  /** Show a selection (no history change). */
+  const show = useCallback((sel: Selection) => {
+    current.current = sel;
     setSelection(sel);
     setHint(false);
     // Wait a frame so the card has its final height before focusing.
     requestAnimationFrame(() => {
-      mapRef.current?.focusSelection(sel, sel ? cardRef.current?.offsetHeight ?? 300 : 0);
+      const card = cardRef.current;
+      // Landscape shows the card as a right-hand panel; portrait along the bottom.
+      const side = card && window.matchMedia('(orientation: landscape)').matches;
+      const panel = !sel || !card
+        ? { bottom: 0, right: 0 }
+        : side
+          ? { bottom: 0, right: card.offsetWidth + 24 }
+          : { bottom: card.offsetHeight, right: 0 };
+      mapRef.current?.focusSelection(sel, panel);
     });
   }, []);
 
+  /** Selection from the map or controls: starts a fresh history. */
+  const select = useCallback((sel: Selection) => {
+    history.current = [];
+    setCanGoBack(false);
+    show(sel);
+  }, [show]);
+
+  /** Navigation from inside a card: remember where we came from. */
+  const navigate = useCallback((sel: Selection) => {
+    const cur = current.current;
+    // Prev / next between Tirthankaras replaces the card instead of stacking.
+    const stepping = cur?.kind === 'tirthankara' && sel?.kind === 'tirthankara';
+    if (cur && !stepping) history.current.push(cur);
+    setCanGoBack(history.current.length > 0);
+    show(sel);
+  }, [show]);
+
+  const back = useCallback(() => {
+    const prev = history.current.pop() ?? null;
+    setCanGoBack(history.current.length > 0);
+    show(prev);
+  }, [show]);
+
   const changeMode = useCallback((m: Mode) => {
+    history.current = [];
+    current.current = null;
+    setCanGoBack(false);
     setSelection(null);
     setHint(false);
     setMode(m);
@@ -72,7 +104,7 @@ export default function App() {
   // Kiosk idle reset.
   useEffect(() => {
     let timer = window.setTimeout(reset, IDLE_RESET_MS);
-    function reset() { setSelection(null); setMode('birth'); mapRef.current?.reset(); }
+    function reset() { history.current = []; current.current = null; setCanGoBack(false); setSelection(null); setMode('birth'); mapRef.current?.reset(); }
     const bump = () => { window.clearTimeout(timer); timer = window.setTimeout(reset, IDLE_RESET_MS); };
     window.addEventListener('pointerdown', bump);
     window.addEventListener('keydown', bump);
@@ -82,12 +114,6 @@ export default function App() {
       window.removeEventListener('keydown', bump);
     };
   }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 2000);
-    return () => window.clearTimeout(t);
-  }, [toast]);
 
   return (
     <div className={`app${ready ? ' is-ready' : ''}`}>
@@ -101,20 +127,7 @@ export default function App() {
         <h1 className="title" key={mode}>{COPY[mode].title}</h1>
         <p className="subtitle">{COPY[mode].subtitle}</p>
         <p className="subtitle-hi" lang="hi">{COPY[mode].hi}</p>
-        <ModeToggle mode={mode} onChange={changeMode} />
       </header>
-
-      <aside className={`legend${selection ? ' is-hidden' : ''}`} aria-label="Map legend">
-        {mode === 'birth' ? (
-          <div className="legend-row"><span className="legend-icon legend-dot" />Birthplace</div>
-        ) : (
-          <>
-            <div className="legend-row"><span className="legend-icon legend-summit" />Sammed Shikharji · 20 Tirthankaras</div>
-            <div className="legend-row"><span className="legend-icon legend-pin" />Other moksha place</div>
-          </>
-        )}
-        <div className="legend-row"><span className="legend-icon legend-circle" />Tirthankara · tap to explore</div>
-      </aside>
 
       <div className={`zoom-controls${selection ? ' is-hidden' : ''}`} role="group" aria-label="Map zoom">
         <button type="button" className="zoom-btn" aria-label="Zoom in" onClick={() => mapRef.current?.zoomIn()}>+</button>
@@ -124,20 +137,12 @@ export default function App() {
 
       <p className={`hint${hint ? ' is-visible' : ''}`}>Pinch or drag to explore the map</p>
 
-      <InfoCard ref={cardRef} mode={mode} selection={selection} onSelect={select} />
+      <InfoCard ref={cardRef} mode={mode} selection={selection} onNavigate={navigate} onBack={back}
+        onClose={() => select(null)} canGoBack={canGoBack} />
 
-      <nav className="bottom-nav" aria-label="Sections">
-        {NAV.map(n => (
-          <button key={n.key} type="button" className={`nav-item${n.key === 'map' ? ' is-active' : ''}`}
-            aria-current={n.key === 'map' ? 'page' : undefined}
-            onClick={() => n.key !== 'map' && setToast(`${n.label} · coming soon`)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">{n.icon}</svg>
-            <span>{n.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      <div className={`toast${toast ? ' is-visible' : ''}`} role="status">{toast}</div>
+      <div className="bottom-bar">
+        <ModeToggle mode={mode} onChange={changeMode} />
+      </div>
     </div>
   );
 }
