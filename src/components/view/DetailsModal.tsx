@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { COLOURS, PLACES, TIRTHANKARAS, ordinal } from '../../data/tirthankaras';
 import { DESCRIPTIONS, KEVALA_TREES } from '../../data/details';
-import { Figure } from './SceneArt';
+import { Figure, SCENE } from './SceneArt';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -66,7 +66,11 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
 
             <div className="dm-niche">
               <span className="dm-niche-glow" />
-              <div className="dm-figure"><Figure colour={t.colour} /></div>
+              {/* Seated on the marble pedestal (simhasana) */}
+              <div className="dm-stack">
+                <div className="dm-figure"><Figure colour={t.colour} /></div>
+                <img className="dm-pedestal" src={SCENE('pedestal')} alt="" />
+              </div>
             </div>
             <div className="dm-seal"><img src={BASE + t.symbol} alt={`${t.emblem} (symbol)`} /></div>
           </header>
