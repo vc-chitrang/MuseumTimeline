@@ -1,7 +1,7 @@
 import type { Ref } from 'react';
 import { COLOURS, PLACES, TIRTHANKARAS, ordinal, placeOf, type Mode, type PlaceKey } from '../data/tirthankaras';
 import type { Selection } from './MapView';
-import { Emblem, Portrait } from './Portrait';
+import { Emblem, EmblemBadge, Portrait } from './Portrait';
 
 interface Props {
   ref?: Ref<HTMLElement>;
@@ -43,7 +43,7 @@ function TirthankaraBody({ id, mode, onSelect }: { id: number; mode: Mode; onSel
   return (
     <div className="card-body" key={id}>
       <div className="card-head">
-        <div className="card-portrait"><Portrait t={t} /></div>
+        <div className="card-portrait"><Portrait t={t} /><EmblemBadge t={t} /></div>
         <div>
           <p className="card-kicker">{ordinal(t.id)} Tirthankara</p>
           <h2 className="card-title">{t.name}</h2>

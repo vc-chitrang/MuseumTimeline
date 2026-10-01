@@ -3,7 +3,7 @@ import { PLACES, TIRTHANKARAS, placeOf, placesFor, type Mode, type PlaceKey } fr
 import { HUB, LAYOUTS, RING_RADIUS, anchorFor, circleFor, leaderPath } from '../lib/layout';
 import { MAP_HEIGHT, MAP_WIDTH } from '../lib/projection';
 import { usePanZoom } from '../hooks/usePanZoom';
-import { Portrait } from './Portrait';
+import { EmblemBadge, Portrait } from './Portrait';
 
 export type Selection =
   | { kind: 'tirthankara'; id: number }
@@ -226,6 +226,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                       aria-label={`${t.id}. ${t.name}`}
                       onClick={() => onSelect({ kind: 'tirthankara', id: t.id })}>
                       <Portrait t={t} />
+                      <EmblemBadge t={t} />
                       <span className="t-num">{t.id}</span>
                       <span className="t-name">
                         {t.name}

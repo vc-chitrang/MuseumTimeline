@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { InfoCard } from './components/InfoCard';
 import { MapView, type MapHandle, type Selection } from './components/MapView';
 import { ModeToggle } from './components/ModeToggle';
+import { PortraitSprite } from './components/Portrait';
 import type { Mode } from './data/tirthankaras';
 
 const NAV = [
@@ -90,6 +91,8 @@ export default function App() {
 
   return (
     <div className={`app${ready ? ' is-ready' : ''}`}>
+      <PortraitSprite />
+
       <MapView ref={mapRef} mode={mode} selection={selection} onSelect={select}
         onImageLoad={onImageLoad} onInteract={onInteract} />
 
