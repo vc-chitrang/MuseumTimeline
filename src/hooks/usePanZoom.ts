@@ -96,16 +96,21 @@ export function usePanZoom(
     return { top, bottom, width, height: bottom - top };
   }, [viewportRef]);
 
+  // Last fitted view: lets the UI know when the map has been moved away from it.
+  const home = useRef<ViewState | null>(null);
+
   const apply = useCallback(() => {
     const stage = stageRef.current, vp = viewportRef.current;
     if (!stage || !vp) return;
     const { k0, z, tx, ty } = view.current;
+    const h = home.current;
     const k = k0 * z;
     stage.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${k})`;
     // Markers keep a near-constant on-screen size, growing gently with zoom.
     stage.style.setProperty('--es', String((1 + (z - 1) * 0.35) / k));
     vp.classList.toggle('show-names', z >= NAMES_ZOOM);
     vp.classList.toggle('show-places', z >= PLACES_ZOOM);
+    vp.classList.toggle('is-moved', !!h && (Math.abs(z - h.z) > 0.02 || Math.abs(tx - h.tx) > 6 || Math.abs(ty - h.ty) > 6));
   }, [stageRef, viewportRef]);
 
   const stopAnim = () => {
@@ -148,6 +153,7 @@ export function usePanZoom(
 
   const reset = useCallback((animate = true) => {
     const f = fitted();
+    home.current = f;
     if (animate) {
       view.current = { ...view.current, k0: f.k0 };
       animateTo(f);

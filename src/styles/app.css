@@ -711,7 +711,22 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   .card-title { font-size: 34px; }
 }
 @media (max-width: 600px) and (max-height: 700px) { :root { --ms: 0.56; } }
-@media (max-width: 700px) { .zoom-controls { display: none; } }
+/* Phones: pinch replaces + and −; only "reset view" remains, and it appears
+   once the map has been zoomed or moved away from the full view. */
+@media (max-width: 700px) {
+  .zoom-controls {
+    bottom: calc(var(--nav-h) + var(--s4) + env(safe-area-inset-bottom, 0px));
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: opacity 0.25s ease, transform 0.25s var(--ease-out);
+  }
+  .app.is-ready .zoom-controls { opacity: 0; pointer-events: none; }
+  .zoom-btn:not(.zoom-btn--reset) { display: none; }
+  .zoom-btn--reset { width: 48px; height: 48px; }
+  .app.is-ready:has(.map-viewport.is-moved) .zoom-controls:not(.is-hidden) { opacity: 1; pointer-events: auto; transform: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
