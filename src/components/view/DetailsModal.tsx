@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { COLOURS, PLACES, TIRTHANKARAS, ordinal } from '../../data/tirthankaras';
 import { DESCRIPTIONS, KEVALA_TREES } from '../../data/details';
+import { Figure } from './SceneArt';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -32,17 +33,35 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
 
         <div className="details-scroll">
           <header className="details-head">
-            <img className="details-emblem" src={BASE + t.symbol} alt={t.emblem} />
-            <div>
-              <p className="details-kicker">{ordinal(t.id)} Tirthankara</p>
-              <h2 className="details-title">{t.name}</h2>
-              <p className="details-hi"><span lang="hi">{t.hi}</span>{t.alias && ` · ${t.alias}`}</p>
-            </div>
+            <p className="details-kicker">{ordinal(t.id)} Tirthankara</p>
+            <h2 className="details-title">{t.name}</h2>
+            <p className="details-hi"><span lang="hi">{t.hi}</span>{t.alias && ` · ${t.alias}`}</p>
           </header>
 
+          {/* The Tirthankara and their identifying symbol, side by side */}
+          <div className="details-hero">
+            <figure className="hero-tile hero-tile--figure">
+              <div className="hero-art"><Figure colour={t.colour} /></div>
+              <figcaption>
+                <span className="hero-label">Tirthankara</span>
+                {t.name}
+              </figcaption>
+            </figure>
+            <span className="hero-link" aria-hidden="true">
+              <span>identified by</span>
+              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </span>
+            <figure className="hero-tile hero-tile--symbol">
+              <div className="hero-art"><img src={BASE + t.symbol} alt={t.emblem} /></div>
+              <figcaption>
+                <span className="hero-label">Lanchhan · Symbol</span>
+                {t.emblem}
+              </figcaption>
+            </figure>
+          </div>
+          <p className="hero-note">Idols of the Tirthankaras look alike; each is recognised by the symbol carved on its pedestal.</p>
+
           <dl className="details-facts">
-            <div><dt>Number</dt><dd>{t.id} of 24</dd></div>
-            <div><dt>Symbol</dt><dd>{t.emblem}</dd></div>
             <div><dt>Colour</dt><dd><span className="swatch" style={{ background: colour.hex }} />{colour.label}</dd></div>
             <div><dt>Parents</dt><dd>{t.parents}</dd></div>
             <div><dt>Birthplace</dt><dd>{birth.name}<small>{birth.region}</small></dd></div>
