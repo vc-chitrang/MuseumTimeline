@@ -1,79 +1,138 @@
 /**
- * Positions of map overlays, in map-image pixels.
+ * Positions of map overlays, in map-image pixels, for each map mode.
  *
- * Sammed Shikharji (20 Tirthankaras) is shown as a ring of portraits over the
- * Bay of Bengal, joined to its summit marker by a light beam. The other four
- * Tirthankaras sit next to their own moksha pin with a leader line.
+ * Moksha: Sammed Shikharji (20 Tirthankaras) is a ring of portraits over the
+ * Bay of Bengal joined to its summit by a light beam; the other four sit next
+ * to their own pin.
+ *
+ * Birth: portraits sit on an ellipse around the Gangetic plain, ordered by the
+ * direction of their birthplace so leader lines don't cross.
  */
-import { PLACES, TIRTHANKARAS, type PlaceKey } from '../data/tirthankaras';
+import { PLACES, TIRTHANKARAS, placeOf, type Mode, type PlaceKey } from '../data/tirthankaras';
 import { project, type Point } from './projection';
 
-export const RING_CIRCLE_SIZE = 46; // screen px at zoom 1
-export const SINGLE_CIRCLE_SIZE = 66;
+export const SMALL_CIRCLE_SIZE = 50; // screen px at zoom 1
+export const LARGE_CIRCLE_SIZE = 68;
 
 export const HUB: Point = project(14.5, 88.5);
 export const RING_RADIUS = 390;
 
-/** Hand-placed portrait positions for the Tirthankaras not at Sammed Shikharji. */
-const SINGLE_OFFSETS: Partial<Record<PlaceKey, Point>> = {
+export type LabelSide = 'top' | 'bottom' | 'left' | 'right';
+
+export interface CircleLayout extends Point {
+  id: number;
+  size: number;
+  /** Part of the Sammed Shikharji ring (moksha mode). */
+  ring: boolean;
+  /** Name always visible (otherwise only when zoomed in or selected). */
+  labelAlways: boolean;
+  labelSide: LabelSide;
+  /** Intro animation delay (s). */
+  delay: number;
+}
+
+export interface ModeLayout {
+  circles: CircleLayout[];
+  /** Region that must be visible when the view is reset. */
+  bounds: { x: number; y: number; w: number; h: number };
+}
+
+function sideFor(angle: number): LabelSide {
+  const cos = Math.cos(angle), sin = Math.sin(angle);
+  return cos > 0.55 ? 'right' : cos < -0.55 ? 'left' : sin < 0 ? 'top' : 'bottom';
+}
+
+// Moksha ----------------------------------------------------------------------
+
+/** Hand-placed portraits for the Tirthankaras not at Sammed Shikharji. */
+const MOKSHA_SINGLES: Partial<Record<PlaceKey, Point>> = {
   ashtapad: { x: 760, y: 300 },
   champapuri: { x: 1580, y: 470 },
   pavapuri: { x: 1060, y: 520 },
   girnar: { x: 250, y: 965 }
 };
 
-export interface CircleLayout extends Point {
-  id: number;
-  ring: boolean;
-  /** Side of the portrait where its name is drawn (outside the ring). */
-  labelSide: 'top' | 'bottom' | 'left' | 'right';
-  /** Animation delay (s) for the intro. */
-  delay: number;
-}
-
-function buildLayout(): CircleLayout[] {
+function mokshaLayout(): ModeLayout {
   const shikharji = PLACES.shikharji;
   const ringIds = TIRTHANKARAS.filter(t => t.moksha === 'shikharji').map(t => t.id);
 
   // Leave a gap in the ring where the beam leaves towards the summit marker.
   const beamAngle = Math.atan2(shikharji.y - HUB.y, shikharji.x - HUB.x);
   const gap = (34 * Math.PI) / 180;
-  const span = 2 * Math.PI - gap;
-  const step = span / (ringIds.length - 1);
+  const step = (2 * Math.PI - gap) / (ringIds.length - 1);
 
   const ring = ringIds.map((id, i): CircleLayout => {
     const a = beamAngle + gap / 2 + i * step;
-    const cos = Math.cos(a), sin = Math.sin(a);
-    const labelSide: CircleLayout['labelSide'] =
-      cos > 0.55 ? 'right' : cos < -0.55 ? 'left' : sin < 0 ? 'top' : 'bottom';
     return {
-      id,
-      ring: true,
-      labelSide,
+      id, ring: true, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a),
       x: HUB.x + RING_RADIUS * Math.cos(a),
       y: HUB.y + RING_RADIUS * Math.sin(a),
       delay: 1.7 + i * 0.05
     };
   });
 
-  const singles = TIRTHANKARAS.filter(t => t.moksha !== 'shikharji').map((t, i) => ({
-    id: t.id,
-    ring: false,
-    labelSide: 'bottom' as const,
-    ...(SINGLE_OFFSETS[t.moksha] as Point),
+  const singles = TIRTHANKARAS.filter(t => t.moksha !== 'shikharji').map((t, i): CircleLayout => ({
+    id: t.id, ring: false, size: LARGE_CIRCLE_SIZE, labelAlways: true, labelSide: 'bottom',
+    ...(MOKSHA_SINGLES[t.moksha] as Point),
     delay: 1.5 + i * 0.12
   }));
 
-  return [...ring, ...singles].sort((a, b) => a.id - b.id);
+  return {
+    circles: [...ring, ...singles].sort((a, b) => a.id - b.id),
+    bounds: { x: 150, y: 215, w: 1700, h: 1395 }
+  };
 }
 
-export const CIRCLES: CircleLayout[] = buildLayout();
-export const CIRCLE_BY_ID = new Map(CIRCLES.map(c => [c.id, c]));
+// Birth -----------------------------------------------------------------------
 
-/** Map region that must be visible when the view is reset. */
-export const CONTENT_BOUNDS = { x: 150, y: 215, w: 1700, h: 1395 };
+const BIRTH_CENTRE: Point = project(26.1, 82.6);
+const BIRTH_RX = 660;
+const BIRTH_RY = 430;
 
-/** Quadratic curve from a pin to its portrait, bowed for a softer look. */
+function birthLayout(): ModeLayout {
+  const n = TIRTHANKARAS.length;
+  const step = (2 * Math.PI) / n;
+
+  // Direction of each birthplace from the centre; ties keep Tirthankara order.
+  const items = TIRTHANKARAS.map(t => {
+    const p = PLACES[t.birth];
+    return { id: t.id, angle: Math.atan2((p.y - BIRTH_CENTRE.y) / BIRTH_RY, (p.x - BIRTH_CENTRE.x) / BIRTH_RX) };
+  }).sort((a, b) => a.angle - b.angle || a.id - b.id);
+
+  // Rotate the evenly spaced slots to best match the real directions.
+  let sx = 0, sy = 0;
+  items.forEach((it, i) => { sx += Math.cos(it.angle - i * step); sy += Math.sin(it.angle - i * step); });
+  const offset = Math.atan2(sy, sx);
+
+  const circles = items.map((it, i): CircleLayout => {
+    const a = offset + i * step;
+    return {
+      id: it.id, ring: false, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a),
+      x: BIRTH_CENTRE.x + BIRTH_RX * Math.cos(a),
+      y: BIRTH_CENTRE.y + BIRTH_RY * Math.sin(a),
+      delay: 1.5 + ((it.id - 1) * 0.05)
+    };
+  });
+
+  return {
+    circles: circles.sort((a, b) => a.id - b.id),
+    bounds: { x: BIRTH_CENTRE.x - BIRTH_RX - 110, y: BIRTH_CENTRE.y - BIRTH_RY - 110, w: (BIRTH_RX + 110) * 2, h: (BIRTH_RY + 110) * 2 }
+  };
+}
+
+export const LAYOUTS: Record<Mode, ModeLayout> = {
+  moksha: mokshaLayout(),
+  birth: birthLayout()
+};
+
+export function circleFor(mode: Mode, id: number): CircleLayout {
+  return LAYOUTS[mode].circles[id - 1];
+}
+
+/** Place a Tirthankara's portrait points to in the given mode. */
+export const anchorFor = (mode: Mode, id: number) => PLACES[placeOf(TIRTHANKARAS[id - 1], mode)];
+
+/** Quadratic curve from a marker to its portrait, bowed for a softer look. */
 export function leaderPath(from: Point, to: Point, bow = 0.18): string {
   const mx = (from.x + to.x) / 2, my = (from.y + to.y) / 2;
   const dx = to.x - from.x, dy = to.y - from.y;

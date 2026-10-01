@@ -32,6 +32,8 @@ export interface PanZoomApi {
 
 const DRAG_THRESHOLD = 8;
 const NAMES_ZOOM = 1.55;
+/** Zoom at which every place label is shown (they crowd at lower zooms). */
+const PLACES_ZOOM = 2.3;
 /** Allow zooming slightly out of the fitted view (e.g. to fit above a panel). */
 const MIN_ZOOM = 0.8;
 
@@ -77,7 +79,10 @@ export function usePanZoom(
   const anim = useRef<number | null>(null);
   const interacted = useRef(false);
   const onInteractRef = useRef(onInteract);
-  useEffect(() => { onInteractRef.current = onInteract; }, [onInteract]);
+  // Bounds change with the map mode; read through a ref so a change animates
+  // (via reset) instead of re-binding gestures or jumping.
+  const boundsRef = useRef(bounds);
+  useEffect(() => { onInteractRef.current = onInteract; boundsRef.current = bounds; }, [onInteract, bounds]);
 
   const freeArea = useCallback((): FreeArea => {
     const vp = viewportRef.current;
@@ -97,6 +102,7 @@ export function usePanZoom(
     // Markers keep a near-constant on-screen size, growing gently with zoom.
     stage.style.setProperty('--es', String((1 + (z - 1) * 0.35) / k));
     vp.classList.toggle('show-names', z >= NAMES_ZOOM);
+    vp.classList.toggle('show-places', z >= PLACES_ZOOM);
   }, [stageRef, viewportRef]);
 
   const stopAnim = () => {
@@ -126,14 +132,16 @@ export function usePanZoom(
 
   const fitted = useCallback((): ViewState => {
     const a = freeArea();
+    const bounds = boundsRef.current;
     const k0 = Math.min((a.width - 24) / bounds.w, a.height / bounds.h);
     return {
       k0,
       z: 1,
       tx: (a.width - bounds.w * k0) / 2 - bounds.x * k0,
-      ty: a.top + (a.height - bounds.h * k0) / 2 - bounds.y * k0
+      // Spare vertical space goes mostly below the content (map continues south).
+      ty: a.top + Math.max(0, a.height - bounds.h * k0) * 0.2 - bounds.y * k0
     };
-  }, [bounds, freeArea]);
+  }, [freeArea]);
 
   const reset = useCallback((animate = true) => {
     const f = fitted();
@@ -149,9 +157,9 @@ export function usePanZoom(
 
   const zoomBy = useCallback((factor: number) => {
     const a = freeArea();
-    const next = clamped(zoomedAt(view.current, factor, a.width / 2, a.top + a.height / 2, maxZoom), bounds, a);
+    const next = clamped(zoomedAt(view.current, factor, a.width / 2, a.top + a.height / 2, maxZoom), boundsRef.current, a);
     animateTo(next, 400);
-  }, [animateTo, bounds, freeArea, maxZoom]);
+  }, [animateTo, freeArea, maxZoom]);
 
   const focusBox = useCallback((box: Bounds, panelHeight: number, maxZ: number) => {
     const a = freeArea();
@@ -167,8 +175,8 @@ export function usePanZoom(
       tx: a.width / 2 - (box.x + box.w / 2) * k,
       ty: (top + bottom) / 2 - (box.y + box.h / 2) * k
     };
-    animateTo(clamped(target, bounds, a));
-  }, [animateTo, bounds, freeArea, maxZoom]);
+    animateTo(clamped(target, boundsRef.current, a));
+  }, [animateTo, freeArea, maxZoom]);
 
   // Gestures --------------------------------------------------------------
   useEffect(() => {
@@ -211,7 +219,7 @@ export function usePanZoom(
         }
         if (dragged) {
           const v = view.current;
-          view.current = clamped({ ...v, tx: v.tx + cur.x - prev.x, ty: v.ty + cur.y - prev.y }, bounds, a);
+          view.current = clamped({ ...v, tx: v.tx + cur.x - prev.x, ty: v.ty + cur.y - prev.y }, boundsRef.current, a);
           apply();
         }
       } else if (pointers.size === 2) {
@@ -223,7 +231,7 @@ export function usePanZoom(
         let v = view.current;
         v = { ...v, tx: v.tx + (cur.x - prev.x) / 2, ty: v.ty + (cur.y - prev.y) / 2 };
         if (pinchDist > 0) v = zoomedAt(v, dist / pinchDist, midX, midY, maxZoom);
-        view.current = clamped(v, bounds, a);
+        view.current = clamped(v, boundsRef.current, a);
         pinchDist = dist;
         markInteract();
         apply();
@@ -247,7 +255,7 @@ export function usePanZoom(
       markInteract();
       const rect = vp.getBoundingClientRect();
       const v = zoomedAt(view.current, Math.exp(-e.deltaY * 0.0015), e.clientX - rect.left, e.clientY - rect.top, maxZoom);
-      view.current = clamped(v, bounds, freeArea());
+      view.current = clamped(v, boundsRef.current, freeArea());
       apply();
     };
 
@@ -265,17 +273,19 @@ export function usePanZoom(
       vp.removeEventListener('click', onClickCapture, true);
       vp.removeEventListener('wheel', onWheel);
     };
-  }, [apply, bounds, freeArea, maxZoom, viewportRef]);
+  }, [apply, freeArea, maxZoom, viewportRef]);
 
   // Fit on mount and whenever the viewport changes size / orientation.
+  const resetRef = useRef(reset);
+  useEffect(() => { resetRef.current = reset; }, [reset]);
   useEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
-    reset(false);
-    const ro = new ResizeObserver(() => reset(false));
+    resetRef.current(false);
+    const ro = new ResizeObserver(() => resetRef.current(false));
     ro.observe(vp);
     return () => { ro.disconnect(); stopAnim(); };
-  }, [reset, viewportRef]);
+  }, [viewportRef]);
 
   return { reset, zoomBy, focusBox, freeArea };
 }

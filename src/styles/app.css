@@ -206,10 +206,17 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   position: absolute;
   left: 0;
   top: 0;
-  transform: translate(var(--x), var(--y)) scale(var(--es, 1));
+  transform: translate(var(--x), var(--y));
+}
+/* Scale lives on an inner wrapper so position can animate independently. */
+.marker-scale {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: scale(var(--es, 1));
   transform-origin: 0 0;
 }
-.marker > * { pointer-events: auto; }
+.marker-scale > * { pointer-events: auto; }
 
 /* Place pin (teardrop), anchored at its tip */
 .pin {
@@ -333,17 +340,21 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   inset: 0;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--halo) 60%, #26336e) 0%, #1a2352 50%, #0a0f27 100%);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 246, 222, 0.95) 0%, rgba(246, 232, 196, 0.85) 38%, transparent 66%),
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--halo) 70%, #26336e) 0%, #1a2352 70%, #0a0f27 100%);
   border: 2.5px solid var(--gold-300);
   box-shadow: 0 0 0 3px rgba(7, 11, 29, 0.55), 0 8px 18px rgba(0, 0, 0, 0.5), inset 0 -10px 18px rgba(0, 0, 0, 0.35);
   transition: transform 0.3s var(--ease-out), box-shadow 0.3s ease;
 }
-.portrait svg {
+.portrait img {
   position: absolute;
-  left: 8%;
-  bottom: -6%;
-  width: 84%;
-  height: 84%;
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
 }
 .t-circle:hover .portrait,
 .t-circle:focus-visible .portrait { transform: scale(1.08); }
@@ -382,8 +393,8 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   transition: opacity 0.3s ease;
 }
 .t-name small { display: block; font-size: 11px; font-weight: 500; color: var(--gold-300); }
-.t-circle.is-ring .t-name { opacity: 0; }
-.map-viewport.show-names .t-circle.is-ring .t-name { opacity: 1; }
+.t-circle:not(.is-labelled) .t-name { opacity: 0; }
+.map-viewport.show-names .t-circle .t-name { opacity: 1; }
 
 /* Ring hub (Sammed Shikharji) */
 .hub {
@@ -404,7 +415,7 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   opacity: 0;
   transform: scale(0.3);
 }
-.app.is-ready .hub { animation: pop 0.9s var(--ease-spring) forwards; animation-delay: 1.3s; }
+.app.is-ready .hub { animation: pop 0.9s var(--ease-spring) forwards; animation-delay: var(--d, 1.3s); }
 .hub-count { font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 0.9; color: var(--gold-300); }
 .hub-title { font-size: 12.5px; font-weight: 700; line-height: 1.1; margin-top: 4px; }
 .hub-sub { font-size: 10.5px; color: var(--muted); letter-spacing: 0.04em; }
@@ -603,7 +614,9 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
 .card-title { font-family: var(--font-display); font-size: 40px; font-weight: 700; line-height: 1; color: var(--gold-300); margin-top: 4px; }
 .card-hi { font-size: 15px; color: var(--muted); margin-top: 2px; }
 
-.card-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.card-facts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 18px; }
+.card-facts > :nth-child(-n+3) { grid-column: span 2; }
+.card-facts > :nth-child(n+4) { grid-column: span 3; }
 .fact {
   padding: 10px 12px;
   border-radius: 16px;
@@ -615,9 +628,7 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
 .fact-value { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; line-height: 1.2; margin-top: 4px; }
 .fact-value small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
 .swatch { width: 18px; height: 18px; border-radius: 50%; flex: none; border: 1.5px solid rgba(255, 255, 255, 0.6); }
-.emblem { font-size: 22px; line-height: 1; flex: none; }
-.emblem.is-glyph { font-family: var(--font-display); font-weight: 700; color: var(--gold-300); font-size: 24px; }
-.emblem.is-tint { filter: hue-rotate(185deg) saturate(1.4); }
+.emblem { width: 30px; height: 30px; object-fit: contain; flex: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
 
 .card-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
 .card-step {
@@ -796,7 +807,12 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
 /* Single-Tirthankara places already show the place under the portrait;
    their pin labels appear only when zoomed in. */
 .app.is-ready .place-label--secondary { opacity: 0; }
-.app.is-ready .map-viewport.show-names .place-label--secondary { opacity: 1; transition-delay: 0s; }
+.app.is-ready .map-viewport.show-places .place-label--secondary,
+.app.is-ready .marker--place.is-active .place-label--secondary { opacity: 1; transition-delay: 0s; }
+.marker--place.is-active { z-index: 2; }
+.marker--place.is-active .place-label { background: var(--gold-400); color: #2b1b03; border-color: var(--gold-300); }
+/* Moksha mode has few places, so its labels can show from a lower zoom */
+.app.is-ready .map-viewport.mode-moksha.show-names .place-label--secondary { opacity: 1; transition-delay: 0s; }
 
 /* Hint sits just under the header, clear of the legend and controls */
 .hint { top: calc(var(--header-h) + 6px); bottom: auto; }
@@ -809,3 +825,135 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
 /* Compact list of Tirthankaras in the place card */
 .place-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); max-height: 132px; gap: 6px; padding-right: 4px; }
 .chip { min-height: 38px; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --------------------------------------------------------------------------
+   Map modes (birth / moksha)
+   -------------------------------------------------------------------------- */
+:root { --header-h: 318px; }
+@media (max-height: 1100px) and (orientation: portrait) { :root { --header-h: 290px; } }
+@media (orientation: landscape) { :root { --header-h: 206px; } }
+@media (max-width: 600px) { :root { --header-h: 226px; } }
+
+/* Portraits glide to their new places while switching modes */
+.map-viewport.is-morphing .marker--circle { transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1); }
+.map-viewport.is-morphing .t-circle { transition: width 1.1s ease, height 1.1s ease, left 1.1s ease, top 1.1s ease; }
+
+/* Birthplace marker */
+.dot {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  padding: 0;
+  background: radial-gradient(circle at 35% 30%, #fff3d6, #f08a4b 55%, #b8401c);
+  border: 2px solid #fff3d6;
+  box-shadow: 0 0 0 4px rgba(240, 138, 75, 0.28), 0 3px 8px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: scale(0.2);
+}
+.app.is-ready .dot { animation: pop 0.6s var(--ease-spring) forwards; animation-delay: var(--d, 0.9s); }
+.dot.is-active { box-shadow: 0 0 0 6px rgba(247, 220, 143, 0.6), 0 0 18px rgba(247, 220, 143, 0.9); }
+.legend-dot {
+  width: 16px;
+  height: 16px;
+  margin: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3d6, #f08a4b 55%, #b8401c);
+  border: 2px solid #fff3d6;
+}
+
+.sr-defs { position: absolute; width: 0; height: 0; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Title cross-fades when the mode changes */
+.title { animation: title-in 0.6s var(--ease-out); }
+@keyframes title-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Segmented radio control */
+.mode-toggle {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 18px auto 0;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(9, 13, 32, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  pointer-events: auto;
+}
+.mode-thumb {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc(50% - 5px);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fbe3a0, var(--gold-400) 55%, var(--gold-500));
+  box-shadow: 0 4px 14px rgba(236, 196, 97, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: transform 0.45s var(--ease-out);
+}
+.mode-toggle.is-moksha .mode-thumb { transform: translateX(100%); }
+.mode-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 190px;
+  min-height: 56px;
+  padding: 6px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--cream);
+  transition: color 0.3s ease;
+}
+.mode-option input { position: absolute; opacity: 0; pointer-events: none; }
+.mode-option:has(input:focus-visible) { outline: 3px solid var(--gold-300); outline-offset: 2px; }
+.mode-radio {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 245, 230, 0.6);
+  display: grid;
+  place-items: center;
+  transition: border-color 0.3s ease;
+}
+.mode-radio::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: scale(0);
+  transition: transform 0.3s var(--ease-spring);
+}
+.mode-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; font-size: 16px; font-weight: 700; letter-spacing: 0.01em; }
+.mode-text small { font-size: 11.5px; font-weight: 500; opacity: 0.75; }
+.mode-option.is-checked { color: #2b1b03; }
+.mode-option.is-checked .mode-radio { border-color: #2b1b03; }
+.mode-option.is-checked .mode-radio::after { transform: scale(1); }
+
+@media (orientation: landscape) {
+  .mode-toggle { margin-top: 10px; }
+  .mode-option { min-height: 48px; min-width: 170px; }
+}
+@media (max-width: 600px) {
+  .mode-option { min-width: 0; padding: 6px 14px; gap: 8px; }
+  .mode-text { font-size: 14px; }
+}
+
+.fact.is-current { border-color: rgba(236, 196, 97, 0.55); background: rgba(236, 196, 97, 0.1); }
+.fact-value--small { font-size: 14px; font-weight: 500; }

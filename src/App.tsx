@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { InfoCard } from './components/InfoCard';
 import { MapView, type MapHandle, type Selection } from './components/MapView';
-import { PortraitSprite } from './components/Portrait';
+import { ModeToggle } from './components/ModeToggle';
+import type { Mode } from './data/tirthankaras';
 
 const NAV = [
   { key: 'map', label: 'Map', icon: <><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z" /><circle cx="12" cy="10" r="2.2" /></> },
@@ -13,10 +14,24 @@ const NAV = [
 /** Return to the attract state after this long without a touch (museum kiosk). */
 const IDLE_RESET_MS = 90_000;
 
+const COPY: Record<Mode, { title: string; subtitle: string; hi: string }> = {
+  birth: {
+    title: 'Janma Bhumi',
+    subtitle: 'Discover the sacred places where the 24 Tirthankaras of our time cycle were born.',
+    hi: 'चौबीस तीर्थंकरों की जन्म भूमि'
+  },
+  moksha: {
+    title: 'Moksha Bhumi',
+    subtitle: 'Discover the sacred places where the 24 Tirthankaras of our time cycle attained moksha (liberation).',
+    hi: 'चौबीस तीर्थंकरों की मोक्ष भूमि'
+  }
+};
+
 export default function App() {
   const mapRef = useRef<MapHandle>(null);
   const cardRef = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
+  const [mode, setMode] = useState<Mode>('birth');
   const [selection, setSelection] = useState<Selection>(null);
   const [hint, setHint] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -47,10 +62,16 @@ export default function App() {
     });
   }, []);
 
+  const changeMode = useCallback((m: Mode) => {
+    setSelection(null);
+    setHint(false);
+    setMode(m);
+  }, []);
+
   // Kiosk idle reset.
   useEffect(() => {
     let timer = window.setTimeout(reset, IDLE_RESET_MS);
-    function reset() { setSelection(null); mapRef.current?.reset(); }
+    function reset() { setSelection(null); setMode('birth'); mapRef.current?.reset(); }
     const bump = () => { window.clearTimeout(timer); timer = window.setTimeout(reset, IDLE_RESET_MS); };
     window.addEventListener('pointerdown', bump);
     window.addEventListener('keydown', bump);
@@ -69,22 +90,26 @@ export default function App() {
 
   return (
     <div className={`app${ready ? ' is-ready' : ''}`}>
-      <PortraitSprite />
-
-      <MapView ref={mapRef} selection={selection} onSelect={select} onImageLoad={onImageLoad} onInteract={onInteract} />
+      <MapView ref={mapRef} mode={mode} selection={selection} onSelect={select}
+        onImageLoad={onImageLoad} onInteract={onInteract} />
 
       <header className="app-header">
         <p className="eyebrow">24 Tirthankaras · Interactive Map</p>
-        <h1 className="title">Moksha Bhumi</h1>
-        <p className="subtitle">
-          Discover the sacred places where the 24 Tirthankaras of our time cycle attained moksha (liberation).
-        </p>
-        <p className="subtitle-hi" lang="hi">चौबीस तीर्थंकरों की मोक्ष भूमि</p>
+        <h1 className="title" key={mode}>{COPY[mode].title}</h1>
+        <p className="subtitle">{COPY[mode].subtitle}</p>
+        <p className="subtitle-hi" lang="hi">{COPY[mode].hi}</p>
+        <ModeToggle mode={mode} onChange={changeMode} />
       </header>
 
       <aside className={`legend${selection ? ' is-hidden' : ''}`} aria-label="Map legend">
-        <div className="legend-row"><span className="legend-icon legend-summit" />Sammed Shikharji · 20 Tirthankaras</div>
-        <div className="legend-row"><span className="legend-icon legend-pin" />Other moksha place</div>
+        {mode === 'birth' ? (
+          <div className="legend-row"><span className="legend-icon legend-dot" />Birthplace</div>
+        ) : (
+          <>
+            <div className="legend-row"><span className="legend-icon legend-summit" />Sammed Shikharji · 20 Tirthankaras</div>
+            <div className="legend-row"><span className="legend-icon legend-pin" />Other moksha place</div>
+          </>
+        )}
         <div className="legend-row"><span className="legend-icon legend-circle" />Tirthankara · tap to explore</div>
       </aside>
 
@@ -96,7 +121,7 @@ export default function App() {
 
       <p className={`hint${hint ? ' is-visible' : ''}`}>Pinch or drag to explore the map</p>
 
-      <InfoCard ref={cardRef} selection={selection} onSelect={select} />
+      <InfoCard ref={cardRef} mode={mode} selection={selection} onSelect={select} />
 
       <nav className="bottom-nav" aria-label="Sections">
         {NAV.map(n => (
