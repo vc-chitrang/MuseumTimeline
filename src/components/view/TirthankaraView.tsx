@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { COLOURS, TIRTHANKARAS, type Tirthankara } from '../../data/tirthankaras';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { TIRTHANKARAS, type Tirthankara } from '../../data/tirthankaras';
 import { treeImage } from '../../data/details';
 import { DetailsModal } from './DetailsModal';
-import { Birds, Foliage, Hills, Pedestal, SeatedFigure, Sky, TempleArch } from './SceneArt';
+import { Birds, Figure, SCENE, Sky } from './SceneArt';
 
 const BASE = import.meta.env.BASE_URL;
 const TRANSITION_MS = 1150;
 const CLOSE_MS = 520;
 /** Fraction of a full swipe needed to commit to the next Tirthankara. */
 const COMMIT_AT = 0.22;
+
+/** Page distance (fraction of screen height) a layer with factor 1 travels. */
+const TRAVEL = 0.78;
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -24,7 +29,7 @@ interface Props {
  * Parallax layer factors: how fast each layer moves relative to a full page
  * swipe (1 = with the page). Far layers drift, near layers rush past.
  */
-const F = { hillsFar: 0.16, hillsNear: 0.3, sideTrees: 0.44, tree: 0.58, ground: 0.7, temple: 0.8, figure: 0.9, pedestal: 0.96, emblem: 1.04, foliage: 1.22 };
+const F = { hillsFar: 0.16, hillsNear: 0.3, sideTrees: 0.44, tree: 0.56, ground: 0.68, temple: 0.74, pedestal: 0.92, figure: 0.94, emblem: 1.04, foliage: 1.22 };
 
 type Role = 'current' | 'out' | 'in';
 
@@ -32,8 +37,8 @@ function Layer({ f, name, role, enter, children }: {
   f: number; name: string; role: Role; enter: number; children: React.ReactNode;
 }) {
   return (
-    <div className={`layer l-${name} layer--${role}`} style={{ '--f': f, '--enter': enter } as CSSProperties}
-      aria-hidden={role === 'out'}>
+    <div className={`layer l-${name} layer--${role}`} data-f={f} data-role={role}
+      style={{ '--f': f, '--enter': enter } as CSSProperties} aria-hidden={role === 'out'}>
       <div className="layer-in">{children}</div>
     </div>
   );
@@ -41,27 +46,30 @@ function Layer({ f, name, role, enter, children }: {
 
 /** A Tirthankara's scene as separate depth layers (back to front). */
 function sceneLayers(t: Tirthankara, role: Role) {
-  const others = [1, 2, 3].map(treeImage).filter(src => src !== treeImage(t.id)).slice(0, 2);
   const L = (name: string, f: number, enter: number, el: React.ReactNode) => (
     <Layer key={`${t.id}-${name}`} name={name} f={f} role={role} enter={enter}>{el}</Layer>
   );
+  const img = (cls: string, src: string) => <img className={cls} src={src} alt="" draggable={false} />;
   return [
-    L('hills-far', F.hillsFar, 0, <Hills tone="far" />),
-    L('hills-near', F.hillsNear, 1, <Hills tone="near" />),
+    L('hills-far', F.hillsFar, 0, img('hills hills--far', SCENE('hills-far'))),
+    L('hills-near', F.hillsNear, 1, img('hills hills--near', SCENE('hills-near'))),
     L('side-trees', F.sideTrees, 2, <>
-      <img className="side-tree side-tree--left" src={BASE + others[0]} alt="" draggable={false} />
-      <img className="side-tree side-tree--right" src={BASE + others[1]} alt="" draggable={false} />
+      {img('side-tree side-tree--left', SCENE('side-tree-1'))}
+      {img('side-tree side-tree--right', SCENE('side-tree-2'))}
     </>),
-    L('tree', F.tree, 3, <img className="kevala-tree" src={BASE + treeImage(t.id)} alt="" draggable={false} />),
-    L('ground', F.ground, 3.5, <div className="ground" />),
-    L('temple', F.temple, 4, <TempleArch />),
-    L('figure', F.figure, 5, <SeatedFigure colour={COLOURS[t.colour].hex} />),
-    L('pedestal', F.pedestal, 5.5, <Pedestal />),
+    L('tree', F.tree, 3, img('kevala-tree', BASE + treeImage(t.id))),
+    L('ground', F.ground, 3.5, <div className="ground" style={{ backgroundImage: `url(${SCENE('meadow')})` }} />),
+    L('temple', F.temple, 4, img('temple', SCENE('temple'))),
+    L('pedestal', F.pedestal, 5, img('pedestal', SCENE('pedestal'))),
+    L('figure', F.figure, 5.5, <Figure colour={t.colour} />),
     L('emblem', F.emblem, 6.5, <div className="emblem-stage">
       <span className="emblem-glow" />
       <img className="emblem-img" src={BASE + t.symbol} alt={t.emblem} draggable={false} />
     </div>),
-    L('foliage', F.foliage, 7, <><Foliage side="left" /><Foliage side="right" /></>)
+    L('foliage', F.foliage, 7, <>
+      {img('bushes bushes--left', SCENE('bushes'))}
+      {img('bushes bushes--right', SCENE('bushes'))}
+    </>)
   ];
 }
 
@@ -82,21 +90,69 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   const p = useRef(0);
   const anim = useRef<number | null>(null);
   const busy = useRef(false);
+  const nextRef = useRef(next);
+
+  /**
+   * Position every layer for pager progress `v` (0 = current scene, 1 = next).
+   * Written directly to each element's style every frame: this works on all
+   * browsers (mobile Safari does not reliably re-render layers when an
+   * inherited CSS variable changes) and avoids a full style recalculation.
+   */
+  const apply = useCallback((v: number) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const dir = nextRef.current?.dir ?? 1;
+    const travel = root.clientHeight * (reducedMotion() ? TRAVEL * 0.35 : TRAVEL);
+    root.querySelectorAll<HTMLElement>('.layer').forEach(el => {
+      const f = Number(el.dataset.f);
+      const role = el.dataset.role as Role;
+      let s = 0, o = 1;
+      if (role === 'out') {
+        s = -v * dir;
+        o = clamp01(1.15 - v * (1.7 + 1.6 * f)); // near layers leave first
+      } else if (role === 'in') {
+        s = (1 - v) * dir;
+        o = clamp01((v - 0.32 - 0.22 * f) * 3); // far layers arrive first, after the old scene clears
+      }
+      el.style.transform = `translate3d(0, ${(s * travel * f).toFixed(2)}px, 0)`;
+      el.style.opacity = o.toFixed(3);
+    });
+    root.querySelectorAll<HTMLElement>('.tview-title').forEach(el => {
+      const incoming = el.classList.contains('is-in');
+      const out = el.classList.contains('is-out');
+      if (!incoming && !out) { el.style.opacity = ''; el.style.transform = ''; return; }
+      el.style.opacity = String(clamp01(incoming ? v * 2 - 1 : 1 - v * 2));
+      el.style.transform = `translateY(${((incoming ? 1 - v : -v) * dir * 46).toFixed(1)}px)`;
+    });
+    const drift = -v * dir * root.clientHeight;
+    const sky = root.querySelector<HTMLElement>('.sky');
+    const meadow = root.querySelector<HTMLElement>('.meadow');
+    if (sky) sky.style.transform = `translate3d(0, ${(drift * 0.025).toFixed(2)}px, 0)`;
+    if (meadow) meadow.style.transform = `translate3d(0, ${(drift * 0.015).toFixed(2)}px, 0)`;
+  }, []);
 
   const setP = useCallback((v: number) => {
     p.current = v;
-    rootRef.current?.style.setProperty('--p', String(v));
-  }, []);
+    apply(v);
+  }, [apply]);
+
+  // New or re-roled layers get their position before the browser paints.
+  useLayoutEffect(() => {
+    nextRef.current = next;
+    apply(p.current);
+  }, [apply, cur, next]);
 
   useEffect(() => { onChange?.(cur); }, [cur, onChange]);
 
   const animateP = useCallback((to: number, duration: number, ease: (t: number) => number, done: () => void) => {
     if (anim.current !== null) cancelAnimationFrame(anim.current);
     const from = p.current;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Reduce Motion (also set by some phones' power-saving modes): keep the
+    // parallax but make it shorter and gentler rather than removing it.
+    const ms = reducedMotion() ? Math.min(duration, 480) : duration;
     const start = performance.now();
     const tick = (now: number) => {
-      const t = reduce ? 1 : Math.min(1, (now - start) / duration);
+      const t = Math.min(1, (now - start) / ms);
       setP(from + (to - from) * ease(t));
       if (t < 1) anim.current = requestAnimationFrame(tick);
       else { anim.current = null; done(); }
@@ -204,13 +260,11 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
 
   const t = TIRTHANKARAS[cur - 1];
   const n = next ? TIRTHANKARAS[next.id - 1] : null;
-  const dir = next?.dir ?? 1;
 
   return (
     <div
       ref={rootRef}
       className={`tview${opening ? ' is-opening' : ''}${closing ? ' is-closing' : ''}${next ? ' is-moving' : ''}`}
-      style={{ '--dir': dir } as CSSProperties}
       role="dialog"
       aria-modal="true"
       aria-label={t.name}
