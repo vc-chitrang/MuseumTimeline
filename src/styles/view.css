@@ -75,8 +75,10 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  will-change: transform, opacity;
 }
+/* GPU layers only while something moves: phones have limited graphics memory. */
+.tview.is-moving .layer,
+.tview.is-opening .layer { will-change: transform, opacity; }
 /* Before JS positions it, an incoming layer stays hidden (no flash). */
 .layer--in { opacity: 0; }
 .layer-in { position: absolute; inset: 0; }
@@ -538,8 +540,8 @@
 
 .details-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .details-emblem {
-  width: 210px;
-  height: 170px;
+  width: min(100%, 440px);
+  height: clamp(200px, 30vh, 320px);
   object-fit: contain;
   flex: none;
   padding: 10px;
@@ -593,7 +595,7 @@
 @media (max-width: 700px) {
   .details-scroll { padding: 80px 22px 30px; }
   .details-head { gap: 4px; }
-  .details-emblem { width: 160px; height: 120px; }
+  .details-emblem { height: clamp(180px, 28vh, 260px); }
   .details-title { font-size: 44px; }
   .details-facts { grid-template-columns: 1fr 1fr; }
   .details-tree { flex-direction: column; }
@@ -609,4 +611,19 @@
   .tview { --fig-h: 33vh; --ped-b: 7vh; }
   .kevala-tree { height: 58vh; bottom: 33vh; }
   .side-tree { height: 50vh; }
+}
+
+/* Reduce Motion (also switched on by some phones' power-saving modes): keep a
+   short, gentle opening parallax instead of none — it is the core experience. */
+@media (prefers-reduced-motion: reduce) {
+  .tview.is-opening .layer-in {
+    animation-name: layer-rise-soft !important;
+    animation-duration: 0.7s !important;
+    animation-delay: calc(var(--enter) * 40ms) !important;
+    animation-iteration-count: 1 !important;
+  }
+  @keyframes layer-rise-soft {
+    from { opacity: 0; transform: translate3d(0, calc(var(--f) * 14vh), 0); }
+    to { opacity: 1; transform: none; }
+  }
 }

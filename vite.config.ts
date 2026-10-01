@@ -25,6 +25,10 @@ export default defineConfig({
       workbox: {
         // Pre-cache everything so the kiosk works without network.
         globPatterns: ['**/*.{js,css,html,woff2,webp,jpg,png,svg}'],
+        // New versions take over immediately (kiosks and phones never sit on an old build).
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024
       }
     })
