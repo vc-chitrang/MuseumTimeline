@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { TIRTHANKARAS, type Tirthankara } from '../../data/tirthankaras';
 import { treeImage } from '../../data/details';
 import { DetailsModal } from './DetailsModal';
+import { Scrubber } from './Scrubber';
 import { Birds, Figure, SCENE, Sky } from './SceneArt';
 
 const BASE = import.meta.env.BASE_URL;
@@ -86,6 +87,9 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   const [closing, setClosing] = useState(false);
   // Intro: layers rise in at their own speeds (only on first open).
   const [opening, setOpening] = useState(true);
+  // Swipe hint on first open, until the visitor moves to another Tirthankara.
+  const [hint, setHint] = useState(true);
+  useEffect(() => { const t = window.setTimeout(() => setHint(false), 6000); return () => window.clearTimeout(t); }, []);
   useEffect(() => { const t = window.setTimeout(() => setOpening(false), 1900); return () => window.clearTimeout(t); }, []);
   const p = useRef(0);
   const anim = useRef<number | null>(null);
@@ -167,15 +171,16 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
     busy.current = false;
   }, [setP]);
 
-  /** Animate to the neighbouring Tirthankara (dir +1 = next, -1 = previous). */
-  const go = useCallback((dir: 1 | -1) => {
-    const target = cur + dir;
-    if (busy.current || target < 1 || target > 24) return;
+  /** Animate to any Tirthankara; the scene moves up for later ones, down for earlier. */
+  const goTo = useCallback((target: number) => {
+    if (busy.current || target === cur || target < 1 || target > 24) return;
     busy.current = true;
-    setNext({ id: target, dir });
+    setHint(false);
+    setNext({ id: target, dir: target > cur ? 1 : -1 });
     setP(0);
     animateP(1, TRANSITION_MS, easeInOut, () => commit(target));
   }, [animateP, commit, cur, setP]);
+  const go = useCallback((dir: 1 | -1) => goTo(cur + dir), [cur, goTo]);
 
   // Wheel, touch drag and keyboard ------------------------------------------
   useEffect(() => {
@@ -194,7 +199,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
     let startY = 0, lastY = 0, lastT = 0, vel = 0, dragging = false, dragDir: 1 | -1 | 0 = 0, pointer = -1;
     const H = () => el.clientHeight;
     const onDown = (e: PointerEvent) => {
-      if (busy.current || (e.target as HTMLElement).closest('button')) return;
+      if (busy.current || (e.target as HTMLElement).closest('button, .scrub')) return;
       pointer = e.pointerId; startY = lastY = e.clientY; lastT = performance.now(); vel = 0; dragging = true; dragDir = 0;
     };
     const onMove = (e: PointerEvent) => {
@@ -208,6 +213,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
         const dir: 1 | -1 = dy < 0 ? 1 : -1;
         if (cur + dir < 1 || cur + dir > 24) { dragging = false; return; }
         dragDir = dir;
+        setHint(false);
         setNext({ id: cur + dir, dir });
       }
       if (dragDir) setP(Math.max(0, Math.min(1, (-dy * dragDir) / (H() * 0.9))));
@@ -287,47 +293,18 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
 
-      <Rail current={cur} onPrev={() => go(-1)} onNext={() => go(1)} onDetails={() => setDetails(cur)} />
+      <Scrubber current={cur} onJump={goTo} />
+
+      <button type="button" className="tview-info" aria-label={`About ${t.name}`} onClick={() => setDetails(cur)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /><path d="M9 8h7M9 11.5h5" /></svg>
+      </button>
+
+      <div className={`swipe-hint${hint && !n ? ' is-visible' : ''}`} aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>
+        <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>
+      </div>
 
       {details !== null && <DetailsModal id={details} onClose={() => setDetails(null)} />}
     </div>
-  );
-}
-
-/**
- * Right-edge rail: previous above, current in the centre, next below. The
- * current button opens the details; neighbours step to that Tirthankara.
- */
-function Rail({ current, onPrev, onNext, onDetails }: {
-  current: number; onPrev: () => void; onNext: () => void; onDetails: () => void;
-}) {
-  return (
-    <nav className="rail" aria-label="Tirthankaras">
-      <div className="rail-window">
-        <ol className="rail-list" style={{ '--i': current - 1 } as CSSProperties}>
-          {TIRTHANKARAS.map(t => {
-            const rel = t.id - current;
-            const role = rel === 0 ? 'current' : rel === -1 ? 'prev' : rel === 1 ? 'next' : 'far';
-            const label = role === 'current' ? `Details of ${t.name}` : `${t.id}. ${t.name}`;
-            const onClick = role === 'current' ? onDetails : role === 'prev' ? onPrev : role === 'next' ? onNext : undefined;
-            return (
-              <li key={t.id} className={`rail-item is-${role}`}>
-                <button type="button" className="rail-btn" aria-label={label} tabIndex={role === 'far' ? -1 : 0}
-                  onClick={onClick} disabled={role === 'far'}>
-                  {role === 'prev' && <span className="rail-chev rail-chev--up" aria-hidden="true" />}
-                  <span className="rail-num">{t.id}</span>
-                  {role === 'next' && <span className="rail-chev rail-chev--down" aria-hidden="true" />}
-                  {role === 'current' && (
-                    <span className="rail-info" aria-hidden="true">
-                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 11v6M12 7.5v.01" /></svg>
-                    </span>
-                  )}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-    </nav>
   );
 }

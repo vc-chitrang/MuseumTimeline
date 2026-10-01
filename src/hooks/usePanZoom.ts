@@ -142,7 +142,7 @@ export function usePanZoom(
       z: 1,
       tx: (a.width - bounds.w * k0) / 2 - bounds.x * k0,
       // Spare vertical space goes mostly below the content (map continues south).
-      ty: a.top + Math.max(0, a.height - bounds.h * k0) * 0.2 - bounds.y * k0
+      ty: a.top + Math.max(0, a.height - bounds.h * k0) * (a.width < 700 ? 0.32 : 0.2) - bounds.y * k0
     };
   }, [freeArea]);
 

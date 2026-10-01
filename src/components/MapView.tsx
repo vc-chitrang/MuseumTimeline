@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState, type CSSProperties, type Ref } from 'react';
 import { PLACES, TIRTHANKARAS, placeOf, placesFor, type Mode, type PlaceKey } from '../data/tirthankaras';
-import { HUB, LAYOUTS, RING_RADIUS, anchorFor, circleFor, leaderPath } from '../lib/layout';
+import { LAYOUTS, anchorFor, leaderPath, shapeFor, type Shape } from '../lib/layout';
 import { MAP_HEIGHT, MAP_WIDTH } from '../lib/projection';
 import { usePanZoom, type PanelInset } from '../hooks/usePanZoom';
 import { EmblemBadge, Portrait } from './Portrait';
@@ -45,7 +45,17 @@ const pos = (x: number, y: number, extra?: Record<string, string | number>) =>
 export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInteract }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const layout = LAYOUTS[mode];
+  // Portrait screens get the tall arrangement (re-evaluated on rotate / resize).
+  const [shape, setShape] = useState<Shape>(() => shapeFor(window.innerWidth, window.innerHeight));
+  useEffect(() => {
+    const onResize = () => setShape(shapeFor(window.innerWidth, window.innerHeight));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const layout = LAYOUTS[shape][mode];
+  const ringGeom = LAYOUTS[shape].moksha.ring!;
+  const HUB = { x: ringGeom.x, y: ringGeom.y };
+  const circleFor = (m: Mode, id: number) => LAYOUTS[shape][m].circles[id - 1];
   const pz = usePanZoom(viewportRef, stageRef, { bounds: layout.bounds, onInteract });
 
   // After the first mode switch, overlays animate in quickly instead of
@@ -53,7 +63,11 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
   const [switched, setSwitched] = useState(false);
   const [morphing, setMorphing] = useState(false);
   const lastMode = useRef(mode);
+  const lastShape = useRef(shape);
   const resetView = pz.reset;
+  useEffect(() => {
+    if (shape !== lastShape.current) { lastShape.current = shape; resetView(false); }
+  }, [shape, resetView]);
   useEffect(() => {
     if (mode === lastMode.current) return;
     lastMode.current = mode;
@@ -82,14 +96,14 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
         if (c.ring) pz.focusBox({ x: c.x - 210, y: c.y - 180, w: 420, h: 360 }, panel, 2.4);
         else pz.focusBox(around([c, anchorFor(mode, sel.id)], 120), panel, 2);
       } else if (mode === 'moksha' && sel.key === 'shikharji') {
-        const top = PLACES.shikharji.y - 60, bottom = HUB.y + RING_RADIUS + 80;
-        pz.focusBox({ x: HUB.x - RING_RADIUS - 120, y: top, w: (RING_RADIUS + 120) * 2, h: bottom - top }, panel, 2);
+        const top = PLACES.shikharji.y - 60, bottom = ringGeom.y + ringGeom.ry + 80;
+        pz.focusBox({ x: ringGeom.x - ringGeom.rx - 120, y: top, w: (ringGeom.rx + 120) * 2, h: bottom - top }, panel, 2);
       } else {
         const ids = TIRTHANKARAS.filter(t => placeOf(t, mode) === sel.key).map(t => t.id);
         pz.focusBox(around([PLACES[sel.key], ...ids.map(id => circleFor(mode, id))], 120), panel, 2);
       }
     }
-  }), [mode, pz]);
+  }), [mode, pz, shape]);
 
   // Which elements are highlighted by the current selection.
   const activeIds = new Set<number>();
@@ -129,7 +143,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
           </picture>
 
           {/* Lines. Keyed by mode so they redraw on every switch. */}
-          <svg key={mode} className="map-overlay" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} aria-hidden="true">
+          <svg key={`${mode}-${shape}`} className="map-overlay" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`} aria-hidden="true">
             {mode === 'moksha' && (
               <>
                 <defs>
@@ -139,8 +153,8 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                     <stop offset="1" stopColor="#fff3c7" stopOpacity="1" />
                   </linearGradient>
                 </defs>
-                <circle className="ring-orbit ring-orbit--outer" cx={HUB.x} cy={HUB.y} r={RING_RADIUS + 70} />
-                <circle className="ring-orbit" cx={HUB.x} cy={HUB.y} r={RING_RADIUS} />
+                <ellipse className="ring-orbit ring-orbit--outer" cx={HUB.x} cy={HUB.y} rx={ringGeom.rx + 70} ry={ringGeom.ry + 70} />
+                <ellipse className="ring-orbit" cx={HUB.x} cy={HUB.y} rx={ringGeom.rx} ry={ringGeom.ry} />
                 {layout.circles.filter(c => c.ring).map(c => (
                   <path key={c.id} className={`spoke${on(activeIds.has(c.id))}`} pathLength={1}
                     d={`M${HUB.x} ${HUB.y} L${c.x} ${c.y}`}

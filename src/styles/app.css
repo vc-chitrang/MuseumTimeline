@@ -213,7 +213,7 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   position: absolute;
   left: 0;
   top: 0;
-  transform: scale(var(--es, 1));
+  transform: scale(calc(var(--es, 1) * var(--ms, 1)));
   transform-origin: 0 0;
 }
 .marker-scale > * { pointer-events: auto; }
@@ -1008,3 +1008,11 @@ button:focus-visible { outline: 3px solid var(--gold-300); outline-offset: 3px; 
   border-radius: 8px;
 }
 .place-list { padding-right: 8px; }
+
+/* Phones: smaller map markers so the 24 portraits don't crowd */
+@media (max-width: 600px) {
+  :root { --ms: 0.64; }
+}
+@media (max-width: 600px) and (max-height: 700px) {
+  :root { --ms: 0.56; }
+}
