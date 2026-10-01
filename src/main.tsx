@@ -8,6 +8,7 @@ import '@fontsource/mukta/500.css';
 import '@fontsource/mukta/600.css';
 import '@fontsource/mukta/700.css';
 import './styles/app.css';
+import './styles/view.css';
 import App from './App';
 
 // Offline support for the museum kiosk; updates apply automatically.

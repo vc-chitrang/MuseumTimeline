@@ -3,6 +3,7 @@ import { InfoCard } from './components/InfoCard';
 import { MapView, type MapHandle, type Selection } from './components/MapView';
 import { ModeToggle } from './components/ModeToggle';
 import { PortraitSprite } from './components/Portrait';
+import { TirthankaraView } from './components/view/TirthankaraView';
 import type { Mode } from './data/tirthankaras';
 
 /** Return to the attract state after this long without a touch (museum kiosk). */
@@ -28,10 +29,8 @@ export default function App() {
   const [mode, setMode] = useState<Mode>('birth');
   const [selection, setSelection] = useState<Selection>(null);
   const [hint, setHint] = useState(false);
-  // Cards opened from inside a card, so place cards can go Back.
-  const history = useRef<Selection[]>([]);
-  const current = useRef<Selection>(null);
-  const [canGoBack, setCanGoBack] = useState(false);
+  /** Tirthankara shown full-screen (null = map). */
+  const [viewId, setViewId] = useState<number | null>(null);
 
   const onImageLoad = useCallback(() => setReady(true), []);
   const onInteract = useCallback(() => setHint(false), []);
@@ -50,9 +49,8 @@ export default function App() {
     return () => { window.clearTimeout(show); window.clearTimeout(hide); };
   }, [ready]);
 
-  /** Show a selection (no history change). */
+  /** Show a selection and frame it on the map. */
   const show = useCallback((sel: Selection) => {
-    current.current = sel;
     setSelection(sel);
     setHint(false);
     // Wait a frame so the card has its final height before focusing.
@@ -69,33 +67,14 @@ export default function App() {
     });
   }, []);
 
-  /** Selection from the map or controls: starts a fresh history. */
+  /** Selection from the map, cards or controls. */
   const select = useCallback((sel: Selection) => {
-    history.current = [];
-    setCanGoBack(false);
+    // Tirthankara portraits open their full-screen view instead of a card.
+    if (sel?.kind === 'tirthankara') { setHint(false); setViewId(sel.id); return; }
     show(sel);
-  }, [show]);
-
-  /** Navigation from inside a card: remember where we came from. */
-  const navigate = useCallback((sel: Selection) => {
-    const cur = current.current;
-    // Prev / next between Tirthankaras replaces the card instead of stacking.
-    const stepping = cur?.kind === 'tirthankara' && sel?.kind === 'tirthankara';
-    if (cur && !stepping) history.current.push(cur);
-    setCanGoBack(history.current.length > 0);
-    show(sel);
-  }, [show]);
-
-  const back = useCallback(() => {
-    const prev = history.current.pop() ?? null;
-    setCanGoBack(history.current.length > 0);
-    show(prev);
   }, [show]);
 
   const changeMode = useCallback((m: Mode) => {
-    history.current = [];
-    current.current = null;
-    setCanGoBack(false);
     setSelection(null);
     setHint(false);
     setMode(m);
@@ -104,7 +83,7 @@ export default function App() {
   // Kiosk idle reset.
   useEffect(() => {
     let timer = window.setTimeout(reset, IDLE_RESET_MS);
-    function reset() { history.current = []; current.current = null; setCanGoBack(false); setSelection(null); setMode('birth'); mapRef.current?.reset(); }
+    function reset() { setSelection(null); setViewId(null); setMode('birth'); mapRef.current?.reset(); }
     const bump = () => { window.clearTimeout(timer); timer = window.setTimeout(reset, IDLE_RESET_MS); };
     window.addEventListener('pointerdown', bump);
     window.addEventListener('keydown', bump);
@@ -137,12 +116,14 @@ export default function App() {
 
       <p className={`hint${hint ? ' is-visible' : ''}`}>Pinch or drag to explore the map</p>
 
-      <InfoCard ref={cardRef} mode={mode} selection={selection} onNavigate={navigate} onBack={back}
-        onClose={() => select(null)} canGoBack={canGoBack} />
+      <InfoCard ref={cardRef} mode={mode} selection={selection}
+        onOpenTirthankara={setViewId} onBack={() => select(null)} />
 
       <div className="bottom-bar">
         <ModeToggle mode={mode} onChange={changeMode} />
       </div>
+
+      {viewId !== null && <TirthankaraView key="tview" id={viewId} onClose={() => setViewId(null)} />}
     </div>
   );
 }
