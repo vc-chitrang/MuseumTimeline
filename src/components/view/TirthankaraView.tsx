@@ -30,7 +30,7 @@ interface Props {
  * Parallax layer factors: how fast each layer moves relative to a full page
  * swipe (1 = with the page). Far layers drift, near layers rush past.
  */
-const F = { hillsFar: 0.16, hillsNear: 0.3, sideTrees: 0.44, tree: 0.56, ground: 0.68, temple: 0.74, pedestal: 0.92, figure: 0.94, emblem: 1.04, foliage: 1.22 };
+const F = { hillsFar: 0.16, hillsNear: 0.3, sideTrees: 0.44, tree: 0.56, ground: 0.68, temple: 0.88, pedestal: 0.92, figure: 0.94, emblem: 1.04, foliage: 1.22 };
 
 type Role = 'current' | 'out' | 'in';
 
@@ -172,15 +172,16 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   }, [setP]);
 
   /** Animate to any Tirthankara; the scene moves up for later ones, down for earlier. */
-  const goTo = useCallback((target: number) => {
-    if (busy.current || target === cur || target < 1 || target > 24) return;
+  const goTo = useCallback((target: number): boolean => {
+    if (busy.current || target === cur || target < 1 || target > 24) return false;
     busy.current = true;
     setHint(false);
     setNext({ id: target, dir: target > cur ? 1 : -1 });
     setP(0);
     animateP(1, TRANSITION_MS, easeInOut, () => commit(target));
+    return true;
   }, [animateP, commit, cur, setP]);
-  const go = useCallback((dir: 1 | -1) => goTo(cur + dir), [cur, goTo]);
+  const go = useCallback((dir: 1 | -1) => { goTo(cur + dir); }, [cur, goTo]);
 
   // Wheel, touch drag and keyboard ------------------------------------------
   useEffect(() => {

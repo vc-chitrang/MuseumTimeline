@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { TIRTHANKARAS } from '../../data/tirthankaras';
 
 const BASE = import.meta.env.BASE_URL;
@@ -8,19 +8,30 @@ const pos = (id: number) => (id - 1) / (COUNT - 1);
 
 interface Props {
   current: number;
-  onJump: (id: number) => void;
+  /** Returns false if the jump could not start (e.g. mid-transition). */
+  onJump: (id: number) => boolean;
 }
 
 /**
- * Timeline scrubber on the right edge: a slim track with one tick per
+ * Timeline scrubber on the right edge: a slim ruler with one tick per
  * Tirthankara, a gold bead for the current one, and arrow buttons to step.
- * Drag the bead or tap the track to jump; a preview bubble names the target.
+ * Drag the bead or tap the track to jump; a bubble previews the target.
  * Next is below (matching "swipe up for next").
  */
 export function Scrubber({ current, onJump }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [preview, setPreview] = useState<number | null>(null);
+  // Target chosen but not yet shown by the scene: the bead lands there at once.
+  const [pending, setPending] = useState<number | null>(null);
+  const [byPointer, setByPointer] = useState(false);
   const dragging = useRef(false);
+
+  useEffect(() => { if (pending === current) setPending(null); }, [current, pending]);
+
+  const jump = (id: number) => {
+    if (id === (pending ?? current)) return;
+    if (onJump(id)) setPending(id);
+  };
 
   const idAt = (clientY: number) => {
     const r = trackRef.current!.getBoundingClientRect();
@@ -31,7 +42,8 @@ export function Scrubber({ current, onJump }: Props) {
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     dragging.current = true;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    setByPointer(true);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* synthetic pointer */ }
     setPreview(idAt(e.clientY));
   };
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -42,25 +54,25 @@ export function Scrubber({ current, onJump }: Props) {
     dragging.current = false;
     const id = idAt(e.clientY);
     setPreview(null);
-    if (id !== current) onJump(id);
+    jump(id);
   };
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const step = { ArrowUp: -1, ArrowLeft: -1, ArrowDown: 1, ArrowRight: 1, Home: -COUNT, End: COUNT } as Record<string, number>;
     if (!(e.key in step)) return;
     e.preventDefault();
     e.stopPropagation();
-    const id = Math.max(1, Math.min(COUNT, current + step[e.key]));
-    if (id !== current) onJump(id);
+    setByPointer(false);
+    jump(Math.max(1, Math.min(COUNT, (pending ?? current) + step[e.key])));
   };
 
-  const shown = preview ?? current;
+  const shown = preview ?? pending ?? current;
   const p = TIRTHANKARAS[shown - 1];
 
   return (
-    <nav className={`scrub${preview !== null ? ' is-scrubbing' : ''}`} aria-label="Tirthankaras">
-      <button type="button" className="scrub-step scrub-step--up" aria-label="Previous Tirthankara"
-        disabled={current === 1} onClick={() => onJump(current - 1)}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg>
+    <nav className={`scrub${preview !== null ? ' is-scrubbing' : ''}${byPointer ? ' is-pointer' : ''}`} aria-label="Tirthankaras">
+      <button type="button" className="scrub-step" aria-label="Previous Tirthankara"
+        disabled={shown === 1} onClick={() => jump(shown - 1)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 14l5-5 5 5" /></svg>
       </button>
 
       <div
@@ -70,8 +82,8 @@ export function Scrubber({ current, onJump }: Props) {
         tabIndex={0}
         aria-valuemin={1}
         aria-valuemax={COUNT}
-        aria-valuenow={current}
-        aria-valuetext={`${current}. ${TIRTHANKARAS[current - 1].name}`}
+        aria-valuenow={shown}
+        aria-valuetext={`${shown}. ${p.name}`}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -83,7 +95,7 @@ export function Scrubber({ current, onJump }: Props) {
         <span className="scrub-fill" />
         {TIRTHANKARAS.map(t => (
           <span key={t.id}
-            className={`scrub-tick${t.id === current ? ' is-current' : ''}${t.id % 6 === 0 || t.id === 1 ? ' is-major' : ''}`}
+            className={`scrub-tick${t.id <= shown ? ' is-passed' : ''}${t.id % 6 === 0 || t.id === 1 ? ' is-major' : ''}`}
             style={{ top: `${pos(t.id) * 100}%` }} />
         ))}
         <span className="scrub-bead" aria-hidden="true">{shown}</span>
@@ -95,9 +107,9 @@ export function Scrubber({ current, onJump }: Props) {
         )}
       </div>
 
-      <button type="button" className="scrub-step scrub-step--down" aria-label="Next Tirthankara"
-        disabled={current === COUNT} onClick={() => onJump(current + 1)}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      <button type="button" className="scrub-step" aria-label="Next Tirthankara"
+        disabled={shown === COUNT} onClick={() => jump(shown + 1)}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" /></svg>
       </button>
     </nav>
   );
