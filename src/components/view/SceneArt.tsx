@@ -4,9 +4,10 @@
  */
 import type { CSSProperties } from 'react';
 import type { ColourKey } from '../../data/tirthankaras';
+import { ART_EXT } from '../../lib/format';
 
 const BASE = import.meta.env.BASE_URL;
-export const SCENE = (name: string) => `${BASE}assets/scene/${name}.webp`;
+export const SCENE = (name: string) => `${BASE}assets/scene/${name}.${ART_EXT}`;
 
 /** Morning sky photo with drifting clouds (shared by all scenes). */
 export function Sky() {

@@ -34,15 +34,15 @@ export function preloadAll(srcs: string[], timeoutMs: number): Promise<void> {
   ]).finally(() => { waiting--; });
 }
 
-/** Layers every scene shares. */
-export const SHARED_SCENE = ['sky', 'cloud', 'hills-far', 'hills-near', 'side-tree-1', 'side-tree-2',
+/** Layers every scene shares (a function: the format is chosen at startup). */
+const sharedScene = () => ['sky', 'cloud', 'hills-far', 'hills-near', 'side-tree-1', 'side-tree-2',
   'meadow', 'temple', 'pedestal', 'figure', 'bushes'].map(SCENE);
 
 /** Images that differ per Tirthankara. */
 export const ownImages = (id: number) => [BASE + treeImage(id), BASE + TIRTHANKARAS[id - 1].symbol];
 
 /** Everything needed to show one Tirthankara's scene. */
-export const sceneImages = (id: number) => [...SHARED_SCENE, ...ownImages(id)];
+export const sceneImages = (id: number) => [...sharedScene(), ...ownImages(id)];
 
 const idle = (fn: () => void) => {
   // Safari has no requestIdleCallback
@@ -65,14 +65,15 @@ export async function warmUp() {
     });
   }
   const map = BASE + 'assets/images/india-map.webp';
-  const queue = [...SHARED_SCENE, map, ...TIRTHANKARAS.flatMap(t => ownImages(t.id))];
+  const shared = sharedScene();
+  const queue = [...shared, map, ...TIRTHANKARAS.flatMap(t => ownImages(t.id))];
   const nextOne = () => {
     // A scene the visitor just opened gets the whole connection.
     if (waiting > 0) { window.setTimeout(nextOne, 400); return; }
     const src = queue.shift();
     if (!src) return;
     // Shared layers are decoded too; per-Tirthankara images just cached.
-    const job = SHARED_SCENE.includes(src)
+    const job = shared.includes(src)
       ? preload(src)
       : fetch(src, { priority: 'low' } as RequestInit).then(() => undefined, () => undefined);
     job.then(() => idle(nextOne));

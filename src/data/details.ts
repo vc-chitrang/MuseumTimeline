@@ -1,3 +1,5 @@
+import { ART_EXT } from '../lib/format';
+
 /*
  * Long-form content for the Tirthankara detail screens.
  *
@@ -40,7 +42,7 @@ const TREE_ART: (string | null)[] = [
 const STAND_IN = 'f01';
 
 /** Tree artwork for a Tirthankara (falls back to a stand-in tree). */
-export const treeImage = (id: number) => `assets/trees/${TREE_ART[id - 1] ?? STAND_IN}.webp`;
+export const treeImage = (id: number) => `assets/trees/${TREE_ART[id - 1] ?? STAND_IN}.${ART_EXT}`;
 
 const T = (name: string, hi: string, common: string, note: string) => ({ name, hi, common, note });
 
@@ -71,7 +73,12 @@ const TREES: Omit<KevalaTree, 'image' | 'hasArt'>[] = [
   T('Shala', 'शाल', 'Sal', 'A tall, long-lived forest tree of north and central India.')
 ];
 
-export const KEVALA_TREES: KevalaTree[] = TREES.map((t, i) => ({ ...t, image: treeImage(i + 1), hasArt: TREE_ART[i] !== null }));
+export const KEVALA_TREES: KevalaTree[] = TREES.map((t, i) => ({
+  ...t,
+  // getter: the art format (AVIF/WebP) is only known once the app starts
+  get image() { return treeImage(i + 1); },
+  hasArt: TREE_ART[i] !== null
+}));
 
 const D = (title: string, body: string[], more: string[] = []): Description => ({ title, body, more });
 
