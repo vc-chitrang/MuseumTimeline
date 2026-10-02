@@ -54,7 +54,7 @@ export function Portrait({ t }: { t: Tirthankara }) {
  * below the idol, so it is shown as a small medallion beneath the portrait.
  */
 export function Emblem({ t, className = 'emblem' }: { t: Tirthankara; className?: string }) {
-  return <img className={className} src={BASE + t.symbol} alt="" draggable={false} decoding="async" />;
+  return <img className={className} src={BASE + t.symbolSm} alt="" draggable={false} decoding="async" />;
 }
 
 /** Pedestal medallion holding the emblem, placed under a portrait. */

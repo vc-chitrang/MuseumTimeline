@@ -42,8 +42,10 @@ export interface Tirthankara {
   birth: PlaceKey;
   moksha: PlaceKey;
   parents: string;
-  /** Emblem artwork, relative to the site base. */
+  /** Emblem artwork (512 px), relative to the site base. */
   symbol: string;
+  /** Small copy (160 px) for map badges, cards and the scrubber bubble. */
+  symbolSm: string;
 }
 
 export const COLOURS: Record<ColourKey, Colour> = {
@@ -126,7 +128,8 @@ const ROWS: Row[] = [
 export const TIRTHANKARAS: Tirthankara[] = ROWS.map(
   ([name, hi, alias, emblem, colour, birth, moksha, parents], i) => ({
     id: i + 1, name, hi, alias, emblem, colour, birth, moksha, parents,
-    symbol: `assets/symbols/${String(i + 1).padStart(2, '0')}.webp`
+    symbol: `assets/symbols/${String(i + 1).padStart(2, '0')}.webp`,
+    symbolSm: `assets/symbols/sm/${String(i + 1).padStart(2, '0')}.webp`
   })
 );
 

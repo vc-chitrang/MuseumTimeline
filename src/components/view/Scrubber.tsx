@@ -101,7 +101,7 @@ export function Scrubber({ current, onJump }: Props) {
         <span className="scrub-bead" aria-hidden="true">{shown}</span>
         {preview !== null && (
           <span className="scrub-bubble" aria-hidden="true">
-            <img src={BASE + p.symbol} alt="" />
+            <img src={BASE + p.symbolSm} alt="" />
             <span><b>{p.id}</b>{p.name}</span>
           </span>
         )}

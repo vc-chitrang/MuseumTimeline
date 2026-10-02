@@ -5,6 +5,7 @@ import { ModeToggle } from './components/ModeToggle';
 import { PortraitSprite } from './components/Portrait';
 import { TirthankaraView } from './components/view/TirthankaraView';
 import type { Mode } from './data/tirthankaras';
+import { warmUp } from './lib/preload';
 
 /** Return to the attract state after this long without a touch (museum kiosk). */
 const IDLE_RESET_MS = 90_000;
@@ -48,9 +49,12 @@ export default function App() {
 
   // Start the intro once the map image is ready (with a safety timeout).
   useEffect(() => {
-    const t = window.setTimeout(() => setReady(true), 2500);
+    const t = window.setTimeout(() => setReady(true), 6000);
     return () => window.clearTimeout(t);
   }, []);
+
+  // Once the map is up, quietly load the scene art in the background.
+  useEffect(() => { if (ready) warmUp(); }, [ready]);
 
   // Gesture hint shortly after the intro finishes.
   useEffect(() => {

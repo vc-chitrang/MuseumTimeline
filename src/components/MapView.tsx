@@ -129,10 +129,9 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
       <div ref={stageRef} className="map-stage">
         <div className="map-intro">
           <picture>
-            <source srcSet={ASSET('india-map.webp')} type="image/webp" />
             <img
               className="map-image"
-              src={ASSET('india-map.jpg')}
+              src={ASSET('india-map.webp')}
               width={MAP_WIDTH}
               height={MAP_HEIGHT}
               alt="Relief map of India and the Himalaya"

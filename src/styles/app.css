@@ -90,7 +90,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 .map-backdrop {
   position: absolute;
   inset: -60px;
-  background: url("/assets/images/india-map.jpg") center 60% / cover no-repeat;
+  background: url("/assets/images/india-map-blur.webp") center 60% / cover no-repeat;
   filter: blur(36px) saturate(0.9) brightness(0.5);
   transform: scale(1.1);
 }
@@ -728,12 +728,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   .app.is-ready:has(.map-viewport.is-moved) .zoom-controls:not(.is-hidden) { opacity: 1; pointer-events: auto; transform: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-delay: 0s !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0s !important;
-  }
-}
+/* Reduce Motion: many tablets and phones switch it on with battery saver,
+   which used to stop every animation in the app. Movement is softened
+   instead (shorter parallax, gentle intro in view.css); slow ambient drift
+   (clouds, birds, sway) stays, as it is the heart of the experience. */

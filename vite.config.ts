@@ -10,7 +10,6 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['assets/images/*'],
       manifest: {
         name: 'Moksha Bhumi · 24 Tirthankaras',
         short_name: 'Moksha Bhumi',
@@ -23,8 +22,17 @@ export default defineConfig({
         icons: []
       },
       workbox: {
-        // Pre-cache everything so the kiosk works without network.
-        globPatterns: ['**/*.{js,css,html,woff2,webp,jpg,png,svg}'],
+        // Install caches only the app shell (code, fonts, map backdrop), so the
+        // first visit is not slowed by a 10 MB download in the background.
+        globPatterns: ['**/*.{js,css,html,woff2}', '**/india-map-blur.webp'],
+        // Artwork is cached as it is used; the app's background warm-up
+        // (src/lib/preload.ts) fetches the rest, so a kiosk that has run once
+        // works offline. Stale-while-revalidate picks up re-exported art.
+        runtimeCaching: [{
+          urlPattern: ({ url }) => /\/assets\/(images|scene|trees|symbols)\//.test(url.pathname),
+          handler: 'StaleWhileRevalidate',
+          options: { cacheName: 'artwork', expiration: { maxEntries: 120 } }
+        }],
         // New versions take over immediately (kiosks and phones never sit on an old build).
         skipWaiting: true,
         clientsClaim: true,

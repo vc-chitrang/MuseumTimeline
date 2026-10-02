@@ -462,6 +462,32 @@
   .side-tree { height: 50vh; }
 }
 
+/* Loading: the sky shows at once; the scene waits hidden until its art is
+   decoded, then plays the intro. A quiet spinner appears only if that takes
+   longer than half a second. */
+.tview.is-loading .layer-in,
+.tview.is-loading .tview-name,
+.tview.is-loading .scrub,
+.tview.is-loading .tview-info,
+.tview.is-loading .swipe-hint { opacity: 0; }
+.tview-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  border: 3px solid rgba(244, 236, 221, 0.45);
+  border-top-color: var(--sindoor);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.tview.is-loading .tview-loader { opacity: 1; transition-delay: 0.5s; animation: loader-spin 0.9s linear infinite; }
+@keyframes loader-spin { to { transform: rotate(360deg); } }
+
 /* Reduce Motion (also switched on by some phones' power-saving modes): keep a
    short, gentle opening parallax instead of none — it is the core experience. */
 @media (prefers-reduced-motion: reduce) {

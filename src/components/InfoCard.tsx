@@ -57,7 +57,7 @@ function PlaceBody({ placeKey, mode, onOpen }: { placeKey: PlaceKey; mode: Mode;
                 aria-label={`${t.name}, ${ordinal(t.id)} Tirthankara. Open their story`}>
                 <span className="pi-art" aria-hidden="true">
                   <span className="pi-niche"><span className="pi-figure"><Figure colour={t.colour} /></span></span>
-                  <span className="pi-seal"><img src={BASE + t.symbol} alt="" /></span>
+                  <span className="pi-seal"><img src={BASE + t.symbolSm} alt="" /></span>
                 </span>
                 <span className="pi-text">
                   <span className="pi-kicker">{ordinal(t.id)} Tirthankara</span>

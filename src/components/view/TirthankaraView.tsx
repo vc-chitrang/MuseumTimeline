@@ -5,6 +5,7 @@ import { DetailsModal } from './DetailsModal';
 import { Scrubber } from './Scrubber';
 import { BackButton } from '../BackButton';
 import { Birds, Figure, SCENE, Sky } from './SceneArt';
+import { ownImages, preload, preloadAll, sceneImages } from '../../lib/preload';
 
 const BASE = import.meta.env.BASE_URL;
 const TRANSITION_MS = 1150;
@@ -86,15 +87,33 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   const [next, setNext] = useState<{ id: number; dir: 1 | -1 } | null>(null);
   const [details, setDetails] = useState<number | null>(null);
   const [closing, setClosing] = useState(false);
+  // Art downloaded and decoded: the intro waits for it, otherwise on a slow
+  // tablet the layers would finish animating before their pictures arrive.
+  const [ready, setReady] = useState(false);
   // Intro: layers rise in at their own speeds (only on first open).
   const [opening, setOpening] = useState(true);
   // Swipe hint on first open, until the visitor moves to another Tirthankara.
   const [hint, setHint] = useState(true);
-  useEffect(() => { const t = window.setTimeout(() => setHint(false), 6000); return () => window.clearTimeout(t); }, []);
-  useEffect(() => { const t = window.setTimeout(() => setOpening(false), 1900); return () => window.clearTimeout(t); }, []);
   const p = useRef(0);
   const anim = useRef<number | null>(null);
-  const busy = useRef(false);
+  // Input is ignored until the scene is ready.
+  const busy = useRef(true);
+
+  useEffect(() => {
+    let alive = true;
+    preloadAll(sceneImages(id), 12000).then(() => {
+      if (!alive) return;
+      busy.current = false;
+      setReady(true);
+    });
+    return () => { alive = false; };
+  }, [id]);
+  useEffect(() => {
+    if (!ready) return;
+    const intro = window.setTimeout(() => setOpening(false), 1900);
+    const hideHint = window.setTimeout(() => setHint(false), 6000);
+    return () => { window.clearTimeout(intro); window.clearTimeout(hideHint); };
+  }, [ready]);
   const nextRef = useRef(next);
 
   /**
@@ -149,6 +168,12 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
 
   useEffect(() => { onChange?.(cur); }, [cur, onChange]);
 
+  // Fetch the neighbours' tree and symbol so a swipe never waits.
+  useEffect(() => {
+    if (!ready) return;
+    for (const n of [cur + 1, cur - 1]) if (n >= 1 && n <= 24) ownImages(n).forEach(preload);
+  }, [cur, ready]);
+
   const animateP = useCallback((to: number, duration: number, ease: (t: number) => number, done: () => void) => {
     if (anim.current !== null) cancelAnimationFrame(anim.current);
     const from = p.current;
@@ -177,9 +202,12 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
     if (busy.current || target === cur || target < 1 || target > 24) return false;
     busy.current = true;
     setHint(false);
-    setNext({ id: target, dir: target > cur ? 1 : -1 });
-    setP(0);
-    animateP(1, TRANSITION_MS, easeInOut, () => commit(target));
+    // Scrubber jumps can land far away: give that tree a moment to arrive.
+    preloadAll(ownImages(target), 1200).then(() => {
+      setNext({ id: target, dir: target > cur ? 1 : -1 });
+      setP(0);
+      animateP(1, TRANSITION_MS, easeInOut, () => commit(target));
+    });
     return true;
   }, [animateP, commit, cur, setP]);
   const go = useCallback((dir: 1 | -1) => { goTo(cur + dir); }, [cur, goTo]);
@@ -272,7 +300,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   return (
     <div
       ref={rootRef}
-      className={`tview${opening ? ' is-opening' : ''}${closing ? ' is-closing' : ''}${next ? ' is-moving' : ''}`}
+      className={`tview${!ready ? ' is-loading' : opening ? ' is-opening' : ''}${closing ? ' is-closing' : ''}${next ? ' is-moving' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={t.name}
@@ -280,6 +308,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
       <Sky />
       <Birds />
       <div className="meadow" aria-hidden="true" />
+      <div className="tview-loader" aria-hidden="true" />
 
       <div className="slides">
         {interleave(sceneLayers(t, n ? 'out' : 'current'), n ? sceneLayers(n, 'in') : null)}
