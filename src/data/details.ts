@@ -12,8 +12,10 @@ export interface KevalaTree {
   hi: string;
   /** Common / botanical name for visitors. */
   common: string;
-  /** Artwork in public/assets/trees (only three supplied so far). */
+  /** Artwork in public/assets/trees. */
   image: string;
+  /** False while this tree's own painting is still missing (a stand-in tree is shown in the scene). */
+  hasArt: boolean;
   /** What is notable about this tree, beyond being the Kevala tree. */
   note: string;
 }
@@ -25,24 +27,35 @@ export interface Description {
   more: string[];
 }
 
-const TREE_IMAGES = ['01', '02', '03'];
-/** Tree artwork for a Tirthankara; rotates the supplied images until all 24 arrive. */
-export const treeImage = (id: number) => `assets/trees/${id <= 3 ? TREE_IMAGES[id - 1] : TREE_IMAGES[(id - 1) % 3]}.webp`;
+/*
+ * Painting for each Tirthankara's Kevala tree (Data/Trees/Fxx-*.png, keyed to
+ * public/assets/trees/fxx.webp). A tree shared by two Tirthankaras (banyan,
+ * sal) uses the same painting. null = painting not supplied yet.
+ */
+const TREE_ART: (string | null)[] = [
+  'f01', 'f02', 'f03', null, 'f04', 'f05', 'f06', 'f07', null, 'f08', 'f09', 'f10',
+  'f11', null, 'f13', 'f14', null, 'f15', 'f12', 'f16', 'f17', 'f18', 'f19', 'f03'
+];
+/** Shown in the scene until a tree's own painting arrives. */
+const STAND_IN = 'f01';
+
+/** Tree artwork for a Tirthankara (falls back to a stand-in tree). */
+export const treeImage = (id: number) => `assets/trees/${TREE_ART[id - 1] ?? STAND_IN}.webp`;
 
 const T = (name: string, hi: string, common: string, note: string) => ({ name, hi, common, note });
 
-const TREES: Omit<KevalaTree, 'image'>[] = [
+const TREES: Omit<KevalaTree, 'image' | 'hasArt'>[] = [
   T('Nyagrodha', 'न्यग्रोध (वट)', 'Banyan', 'The banyan spreads by aerial roots into a whole grove, a symbol of shelter and endurance.'),
   T('Saptaparna', 'सप्तपर्ण', 'Saptaparni (Alstonia)', 'Named for its leaves that grow in whorls of seven.'),
   T('Shala', 'शाल', 'Sal', 'A tall, long-lived forest tree of north and central India.'),
   T('Priyala', 'प्रियाल', 'Chironji (Buchanania)', 'A hardy tree of dry forests, known for its edible seeds.'),
   T('Priyangu', 'प्रियंगु', 'Priyangu', 'A fragrant flowering shrub-tree praised in classical Indian literature.'),
-  T('Nyagrodha', 'न्यग्रोध (वट)', 'Banyan', 'The banyan spreads by aerial roots into a whole grove, a symbol of shelter and endurance.'),
+  T('Chhatrabha', 'छत्राभ', 'Chhatra tree', 'Named for its spreading, umbrella-like (chhatra) crown.'),
   T('Shirisha', 'शिरीष', 'Siris', 'Known for its soft, fragrant, powder-puff flowers.'),
-  T('Nagakesara', 'नागकेसर', 'Ceylon ironwood', 'An evergreen with fragrant white flowers and very hard wood.'),
-  T('Naga', 'नाग', 'Naga tree', 'Named in Jain texts as the tree of Pushpadanta’s enlightenment.'),
+  T('Naga', 'नाग', 'Naga tree', 'Named in Jain texts as the tree of Chandraprabha’s enlightenment.'),
+  T('Mali', 'मालि', 'Mali tree', 'Named in the Samavayanga Sutra as the tree of Pushpadanta’s enlightenment.'),
   T('Bilva', 'बिल्व', 'Bael', 'A sacred tree across Indian traditions, valued for its fruit and leaves.'),
-  T('Tumbara', 'तुम्बुरु', 'Tumbaru', 'A small aromatic tree of Indian forests.'),
+  T('Tinduka', 'तिंदुक (तेंदू)', 'Tendu (Indian ebony)', 'A forest tree whose leaves are used to roll bidis and whose heartwood is ebony.'),
   T('Patala', 'पाटल', 'Patala (trumpet flower)', 'Bears fragrant trumpet-shaped flowers.'),
   T('Jambu', 'जम्बू (जामुन)', 'Jamun', 'Gives its name to Jambudvipa, the continent of the Jain world-view.'),
   T('Ashvattha', 'अश्वत्थ (पीपल)', 'Peepal', 'A long-lived sacred fig with heart-shaped leaves.'),
@@ -54,11 +67,11 @@ const TREES: Omit<KevalaTree, 'image'>[] = [
   T('Champaka', 'चंपक (चंपा)', 'Champa', 'Known for its intensely fragrant golden flowers.'),
   T('Bakula', 'बकुल (मौलसिरी)', 'Bakul', 'Its small star-shaped flowers keep their fragrance long after falling.'),
   T('Vetasa', 'वेतस (बेंत)', 'Cane / Rattan', 'A flexible water-side plant, a symbol of humility.'),
-  T('Devadaru', 'देवदारु', 'Deodar', '“Timber of the gods”, the great cedar of the Himalaya.'),
+  T('Dhataki', 'धातकी (धावई)', 'Fire-flame bush', 'Covered in bright red tubular flowers; used in traditional medicine.'),
   T('Shala', 'शाल', 'Sal', 'A tall, long-lived forest tree of north and central India.')
 ];
 
-export const KEVALA_TREES: KevalaTree[] = TREES.map((t, i) => ({ ...t, image: treeImage(i + 1) }));
+export const KEVALA_TREES: KevalaTree[] = TREES.map((t, i) => ({ ...t, image: treeImage(i + 1), hasArt: TREE_ART[i] !== null }));
 
 const D = (title: string, body: string[], more: string[] = []): Description => ({ title, body, more });
 

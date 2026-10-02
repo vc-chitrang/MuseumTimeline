@@ -95,7 +95,11 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
             <Ornament />
 
             <section className="dm-section dm-tree">
-              <div className="dm-tree-art"><img src={BASE + tree.image} alt={`${tree.common} tree`} /></div>
+              <figure className="dm-tree-art">
+                <img src={BASE + tree.image} alt={tree.hasArt ? `${tree.common} tree` : ''} />
+                {/* Stand-in painting until this tree's own artwork arrives */}
+                {!tree.hasArt && <figcaption>Representative image</figcaption>}
+              </figure>
               <div className="dm-tree-text">
                 <p className="dm-kicker">Kevala Vriksha</p>
                 <h3>{tree.common}</h3>

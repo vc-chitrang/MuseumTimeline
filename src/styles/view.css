@@ -119,13 +119,17 @@
   bottom: 31vh;
   height: 62vh;
   width: auto;
-  max-width: none;
+  /* Wide crowns (banyan, jambu) shrink to stay mostly on screen on narrow
+     phones; the painting stays bottom-anchored so the trunk keeps its spot. */
+  max-width: 150vw;
+  object-fit: contain;
+  object-position: 50% 100%;
   transform: translateX(-50%);
   transform-origin: 50% 100%;
   animation: sway 9s ease-in-out infinite;
-  /* soften flat-cropped tree tops */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.6) 10%, #000 24%);
-  mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.6) 10%, #000 24%);
+  /* a whisper of haze on the crown tip where it meets the title */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 7%);
   filter: drop-shadow(0 18px 24px rgba(40, 60, 30, 0.25));
 }
 @keyframes sway {

@@ -83,6 +83,7 @@
   border-radius: 999px 999px var(--r-sm) var(--r-sm);
   overflow: hidden;
   background: var(--lapis);
+  container-type: size;
   animation: dm-rise 0.6s 0.08s cubic-bezier(0.2, 0.9, 0.25, 1) both;
 }
 .dm-niche::before {
@@ -104,12 +105,15 @@
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(255, 236, 190, 0.8), rgba(176, 138, 60, 0.28) 58%, transparent);
 }
-/* Figure seated on the pedestal, standing on the niche floor */
+/* Figure seated on the pedestal, standing on the niche floor.
+   Stack height = 1.057 x its width (figure 1356x1500 at 76%, overlapping the
+   pedestal 1600x458 by 7%), so the width is capped by the niche height too:
+   the head always keeps clear of the arch, whatever the screen shape. */
 .dm-stack {
   position: absolute;
   left: 50%;
   bottom: var(--s3);
-  width: 92%;
+  width: min(92cqw, calc((88cqh - var(--s3)) / 1.057));
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -217,7 +221,7 @@
 /* Kevala tree panel */
 .dm-tree {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: var(--s5);
   align-items: center;
   padding: var(--s5);
@@ -225,8 +229,9 @@
   background: #E6E7D2 var(--grain);
   border: 1px solid rgba(78, 106, 58, 0.3);
 }
-.dm-tree-art { height: 180px; display: grid; place-items: end center; }
-.dm-tree-art img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.dm-tree-art { margin: 0; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--s1); }
+.dm-tree-art img { min-height: 0; max-width: 100%; max-height: 100%; object-fit: contain; }
+.dm-tree-art figcaption { flex: none; font-size: 13px; font-style: italic; color: var(--ink-2); }
 .dm-tree-text .dm-kicker { color: var(--leaf); }
 .dm-tree-text h3 { text-align: left; margin: var(--s1) 0 0; font-size: 28px; color: var(--ink); }
 .dm-tree-names { font-size: 15px !important; color: var(--leaf); margin-bottom: var(--s3) !important; }
@@ -264,5 +269,5 @@
   .dm-section p { font-size: 17px; }
   .dm-tree { grid-template-columns: 1fr; text-align: center; padding: var(--s4); }
   .dm-tree-text h3 { text-align: center; }
-  .dm-tree-art { height: 160px; }
+  .dm-tree-art { height: 200px; }
 }
