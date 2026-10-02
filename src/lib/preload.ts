@@ -5,6 +5,7 @@
 import { treeImage } from '../data/details';
 import { TIRTHANKARAS } from '../data/tirthankaras';
 import { SCENE } from '../components/view/SceneArt';
+import { ART_EXT } from './format';
 
 const BASE = import.meta.env.BASE_URL;
 const decoded = new Map<string, Promise<void>>();
@@ -64,7 +65,7 @@ export async function warmUp() {
       window.setTimeout(resolve, 6000);
     });
   }
-  const map = BASE + 'assets/images/india-map.webp';
+  const map = `${BASE}assets/images/india-map.${ART_EXT}`;
   const shared = sharedScene();
   const queue = [...shared, map, ...TIRTHANKARAS.flatMap(t => ownImages(t.id))];
   const nextOne = () => {

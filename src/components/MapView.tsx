@@ -129,6 +129,8 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
       <div ref={stageRef} className="map-stage">
         <div className="map-intro">
           <picture>
+            {/* AVIF where supported (about 30% smaller), WebP otherwise */}
+            <source srcSet={ASSET('india-map.avif')} type="image/avif" />
             <img
               className="map-image"
               src={ASSET('india-map.webp')}

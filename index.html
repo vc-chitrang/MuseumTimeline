@@ -7,7 +7,8 @@
   <meta name="theme-color" content="#16214A">
   <title>Moksha Bhumi · 24 Tirthankaras</title>
   <link rel="icon" href="data:,">
-  <link rel="preload" as="image" href="./assets/images/india-map.webp" type="image/webp">
+  <!-- browsers without AVIF skip this preload and load the WebP map via <picture> -->
+  <link rel="preload" as="image" href="./assets/images/india-map.avif" type="image/avif">
 </head>
 <body>
   <div id="root"></div>
