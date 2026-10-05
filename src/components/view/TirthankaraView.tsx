@@ -69,7 +69,7 @@ function sceneLayers(t: Tirthankara, role: Role) {
     L('figure', F.figure, 5.5, <Figure colour={t.colour} />),
     L('emblem', F.emblem, 6.5, <div className="emblem-stage">
       <span className="emblem-glow" />
-      <img className="emblem-img" src={BASE + t.symbol} alt={t.emblem} draggable={false} />
+      <img className="emblem-img" src={BASE + t.symbolGlow} alt={t.emblem} draggable={false} />
     </div>),
     L('foliage', F.foliage, 7, <>
       {img('bushes bushes--left', SCENE('bushes'))}
@@ -135,19 +135,24 @@ export function TirthankaraView({ id, onClose, onClosing, onChange }: Props) {
       const f = Number(el.dataset.f);
       const role = el.dataset.role as Role;
       let s = 0, o = 1;
+      // Cross-fade windows overlap, so the screen never washes out to bare sky
+      // mid-swipe: near layers leave first, far layers arrive first.
+      const depth = f / 1.22;
       if (role === 'out') {
         s = -v * dir;
-        o = clamp01(1.15 - v * (1.7 + 1.6 * f)); // near layers leave first
+        o = 1 - clamp01((v - (0.08 + 0.14 * (1 - depth))) / 0.42);
       } else if (role === 'in') {
         s = (1 - v) * dir;
-        o = clamp01((v - 0.32 - 0.22 * f) * 3); // far layers arrive first, after the old scene clears
+        o = clamp01((v - (0.28 + 0.18 * depth)) / 0.4);
       }
-      // At rest, drop the transform entirely: a translate3d keeps every layer
-      // on its own GPU texture even when nothing moves.
-      el.style.transform = s === 0 ? '' : `translate3d(0, ${(s * travel * f).toFixed(2)}px, 0)`;
+      // Layers keep their GPU texture the whole time (translate3d even at rest):
+      // releasing it when a swipe settled made the phone redraw every layer at
+      // once, which showed as a flicker just after each transition.
+      el.style.transform = `translate3d(0, ${(s * travel * f).toFixed(2)}px, 0)`;
       // (incoming layers keep an explicit value: their CSS default is hidden)
       el.style.opacity = role === 'current' && o >= 1 ? '' : o.toFixed(3);
-      el.classList.toggle('is-gone', o <= 0);
+      // Only a scene that has fully left stops being drawn.
+      el.classList.toggle('is-gone', role === 'out' && o <= 0);
     });
     root.querySelectorAll<HTMLElement>('.tview-title').forEach(el => {
       const incoming = el.classList.contains('is-in');

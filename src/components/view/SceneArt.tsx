@@ -2,7 +2,6 @@
  * Artwork layers for the Tirthankara scene. Images come from
  * Data/Images/Atmosphere, optimised into public/assets/scene.
  */
-import type { CSSProperties } from 'react';
 import type { ColourKey } from '../../data/tirthankaras';
 import { ART_EXT } from '../../lib/format';
 
@@ -44,38 +43,15 @@ export function Birds() {
 }
 
 /**
- * How the single stone figure is tinted to each Tirthankara's body colour:
- * a colour overlay masked to the figure, plus an optional filter.
+ * Seated Tirthankara with halo, in the body colour. Each colour is a
+ * pre-rendered image (scripts baked the old CSS blend/mask tint), so phones
+ * draw a plain picture instead of blend modes and masks.
  */
-const TINT: Record<ColourKey, { color?: string; blend?: string; opacity?: number; filter?: string }> = {
-  golden: { color: '#f0b445', blend: 'soft-light', opacity: 0.85, filter: 'sepia(0.35) saturate(1.25) brightness(1.08)' },
-  red: { color: '#c4462c', blend: 'color', opacity: 0.5 },
-  white: { filter: 'saturate(0.05) brightness(1.5) contrast(0.88)' },
-  blue: { color: '#3d63cc', blend: 'color', opacity: 0.5 },
-  dark: { color: '#1f2852', blend: 'multiply', opacity: 0.62, filter: 'brightness(0.92)' },
-  green: { color: '#2f9a6b', blend: 'color', opacity: 0.48 }
-};
-
-/** Seated Tirthankara (stone figure) with halo, tinted to the body colour. */
 export function Figure({ colour }: { colour: ColourKey }) {
-  const t = TINT[colour];
-  const src = SCENE('figure');
   return (
-    <div className="figure" style={{ '--fig-filter': t.filter ?? 'none' } as CSSProperties}>
+    <div className="figure">
       <span className="figure-halo" />
-      <img className="figure-img" src={src} alt="" draggable={false} />
-      {t.color && (
-        <span
-          className="figure-tint"
-          style={{
-            background: t.color,
-            mixBlendMode: t.blend as CSSProperties['mixBlendMode'],
-            opacity: t.opacity,
-            WebkitMaskImage: `url(${src})`,
-            maskImage: `url(${src})`
-          }}
-        />
-      )}
+      <img className="figure-img" src={SCENE(`figure-${colour}`)} alt="" draggable={false} />
     </div>
   );
 }

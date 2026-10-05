@@ -98,6 +98,10 @@ export function usePanZoom(
 
   // Last fitted view: lets the UI know when the map has been moved away from it.
   const home = useRef<ViewState | null>(null);
+  // Marker scale (--es): changing it restyles every marker and repaints the
+  // map, so it is set only when it changes, and once a zoom has settled.
+  const esValue = useRef('');
+  const esTimer = useRef(0);
 
   const apply = useCallback(() => {
     const stage = stageRef.current, vp = viewportRef.current;
@@ -106,8 +110,15 @@ export function usePanZoom(
     const h = home.current;
     const k = k0 * z;
     stage.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${k})`;
-    // Markers keep a near-constant on-screen size, growing gently with zoom.
-    stage.style.setProperty('--es', String((1 + (z - 1) * 0.35) / k));
+    // Markers keep a near-constant on-screen size, growing gently with zoom
+    // (during a pinch they scale with the map, then settle).
+    const es = ((1 + (z - 1) * 0.35) / k).toFixed(4);
+    if (es !== esValue.current) {
+      window.clearTimeout(esTimer.current);
+      const set = () => { esValue.current = es; stage.style.setProperty('--es', es); };
+      if (!esValue.current) set();
+      else esTimer.current = window.setTimeout(set, 140);
+    }
     vp.classList.toggle('show-names', z >= NAMES_ZOOM);
     vp.classList.toggle('show-places', z >= PLACES_ZOOM);
     vp.classList.toggle('is-moved', !!h && (Math.abs(z - h.z) > 0.02 || Math.abs(tx - h.tx) > 6 || Math.abs(ty - h.ty) > 6));

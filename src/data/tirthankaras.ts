@@ -46,6 +46,8 @@ export interface Tirthankara {
   symbol: string;
   /** Small copy (160 px) for map badges, cards and the scrubber bubble. */
   symbolSm: string;
+  /** Scene emblem with its golden glow baked in (no CSS filters). */
+  symbolGlow: string;
 }
 
 export const COLOURS: Record<ColourKey, Colour> = {
@@ -129,7 +131,8 @@ export const TIRTHANKARAS: Tirthankara[] = ROWS.map(
   ([name, hi, alias, emblem, colour, birth, moksha, parents], i) => ({
     id: i + 1, name, hi, alias, emblem, colour, birth, moksha, parents,
     symbol: `assets/symbols/${String(i + 1).padStart(2, '0')}.webp`,
-    symbolSm: `assets/symbols/sm/${String(i + 1).padStart(2, '0')}.webp`
+    symbolSm: `assets/symbols/sm/${String(i + 1).padStart(2, '0')}.webp`,
+    symbolGlow: `assets/symbols/glow/${String(i + 1).padStart(2, '0')}.webp`
   })
 );
 

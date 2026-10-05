@@ -37,10 +37,13 @@ export function preloadAll(srcs: string[], timeoutMs: number): Promise<void> {
 
 /** Layers every scene shares (a function: the format is chosen at startup). */
 const sharedScene = () => ['sky', 'cloud', 'hills-far', 'hills-near', 'side-tree-1', 'side-tree-2',
-  'meadow', 'temple', 'pedestal', 'figure', 'bushes'].map(SCENE);
+  'meadow', 'temple', 'pedestal', 'bushes'].map(SCENE);
 
-/** Images that differ per Tirthankara. */
-export const ownImages = (id: number) => [BASE + treeImage(id), BASE + TIRTHANKARAS[id - 1].symbol];
+/** Images that differ per Tirthankara (tree, glowing emblem, figure in body colour). */
+export const ownImages = (id: number) => {
+  const t = TIRTHANKARAS[id - 1];
+  return [BASE + treeImage(id), BASE + t.symbolGlow, SCENE(`figure-${t.colour}`)];
+};
 
 /** Everything needed to show one Tirthankara's scene. */
 export const sceneImages = (id: number) => [...sharedScene(), ...ownImages(id)];

@@ -162,7 +162,6 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                     style={vars({ '--d': delay(c.delay - 0.2, 0.5 + c.id * 0.02) })} />
                 ))}
                 <path className="beam" pathLength={1} d={beam} style={vars({ '--d': delay(1.2, 0.4) })} />
-                <path className="beam-flow" pathLength={1} d={beam} />
               </>
             )}
             {layout.circles.filter(c => !c.ring).map(c => (
