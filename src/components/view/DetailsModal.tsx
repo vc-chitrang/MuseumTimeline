@@ -30,7 +30,12 @@ function Ornament() {
 }
 
 /** Full-screen detail page for one Tirthankara. */
-export function DetailsModal({ id, onClose }: { id: number; onClose: () => void }) {
+export function DetailsModal({ id, onClose, onClosing }: {
+  id: number;
+  onClose: () => void;
+  /** Called when the closing slide starts (the scene behind should reappear). */
+  onClosing?: () => void;
+}) {
   const t = TIRTHANKARAS[id - 1];
   const d = DESCRIPTIONS[id - 1];
   const tree = KEVALA_TREES[id - 1];
@@ -38,7 +43,7 @@ export function DetailsModal({ id, onClose }: { id: number; onClose: () => void 
   const colour = COLOURS[t.colour];
   const [leaving, setLeaving] = useState(false);
 
-  const close = () => { setLeaving(true); window.setTimeout(onClose, 320); };
+  const close = () => { setLeaving(true); onClosing?.(); window.setTimeout(onClose, 320); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };

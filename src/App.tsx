@@ -34,10 +34,18 @@ export default function App() {
   const [viewId, setViewId] = useState<number | null>(null);
   const [viewSession, setViewSession] = useState(0);
   const sessionRef = useRef(0);
+  // True while the full-screen scene covers the map: the map is then not
+  // drawn at all (it held ~45 GPU layers under the scene on phones).
+  const [covered, setCovered] = useState(false);
   const openView = useCallback((id: number) => {
     sessionRef.current += 1;
     setViewSession(sessionRef.current);
     setViewId(id);
+    setCovered(true);
+  }, []);
+  // The map comes back as soon as the scene starts fading out.
+  const uncover = useCallback((session: number) => {
+    if (session === sessionRef.current) setCovered(false);
   }, []);
   // A view that is still fading out must not close one opened after it.
   const closeView = useCallback((session: number) => {
@@ -110,7 +118,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className={`app${ready ? ' is-ready' : ''}`}>
+    <div className={`app${ready ? ' is-ready' : ''}${viewId !== null && covered ? ' is-covered' : ''}`}>
       <PortraitSprite />
 
       <MapView ref={mapRef} mode={mode} selection={selection} onSelect={select}
@@ -139,7 +147,8 @@ export default function App() {
       </div>
 
       {viewId !== null && (
-        <TirthankaraView key={viewSession} id={viewId} onClose={() => closeView(viewSession)} />
+        <TirthankaraView key={viewSession} id={viewId} onClosing={() => uncover(viewSession)}
+          onClose={() => closeView(viewSession)} />
       )}
     </div>
   );

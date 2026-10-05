@@ -732,3 +732,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
    which used to stop every animation in the app. Movement is softened
    instead (shorter parallax, gentle intro in view.css); slow ambient drift
    (clouds, birds, sway) stays, as it is the heart of the experience. */
+
+/* While the full-screen scene covers it, the map is not drawn at all (frees
+   the GPU memory phones need for the scene's parallax). Hidden only after the
+   scene has faded in; shown again the moment the scene starts closing. */
+.app.is-covered > :not(.tview) { visibility: hidden; transition: visibility 0s 0.55s; }

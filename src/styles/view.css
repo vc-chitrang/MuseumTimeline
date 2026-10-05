@@ -30,7 +30,6 @@
   left: 0;
   height: auto;
   animation: drift linear infinite;
-  filter: drop-shadow(0 6px 10px rgba(120, 140, 170, 0.15));
 }
 .cloud--1 { top: 7%; width: 46vmin; animation-duration: 140s; animation-delay: -30s; }
 .cloud--2 { top: 15%; width: 30vmin; opacity: 0.8; animation-duration: 180s; animation-delay: -100s; scale: -1 1; }
@@ -75,7 +74,21 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* Clip to the screen: art overflows the layer (hills are 2.3 screens wide)
+     and an unclipped layer's GPU texture grows with it. On phones ~20 such
+     layers during a swipe ran out of graphics memory, so parts of the scene
+     dropped out in rectangles mid-transition. */
+  contain: layout paint;
 }
+/* Invisible layers (scene fully left / not yet arrived) are not drawn at all. */
+.layer.is-gone { visibility: hidden; }
+/* Ambient motion pauses while the page moves or the details page covers the
+   scene, so the GPU only has to move layers, not re-draw them. */
+.tview.is-moving .layer *,
+.tview.has-details .layer *,
+.tview.has-details .cloud,
+.tview.has-details .bird,
+.tview.has-details .bird svg { animation-play-state: paused; }
 /* GPU layers only while something moves: phones have limited graphics memory. */
 .tview.is-moving .layer,
 .tview.is-opening .layer { will-change: transform, opacity; }
@@ -126,11 +139,9 @@
   object-position: 50% 100%;
   transform: translateX(-50%);
   transform-origin: 50% 100%;
+  /* No filter or mask here: on a swaying image they are re-applied every
+     frame, which is costly on phones. */
   animation: sway 9s ease-in-out infinite;
-  /* a whisper of haze on the crown tip where it meets the title */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 7%);
-  filter: drop-shadow(0 18px 24px rgba(40, 60, 30, 0.25));
 }
 @keyframes sway {
   0%, 100% { transform: translateX(-50%) rotate(-0.4deg); }
@@ -504,3 +515,12 @@
 }
 
 
+
+/* Phones: the details page covers the whole screen, so the scene under it
+   stops being drawn once the page has slid up (frees graphics memory). */
+@media (max-width: 700px) {
+  .tview.has-details .sky,
+  .tview.has-details .birds,
+  .tview.has-details .meadow,
+  .tview.has-details .slides { visibility: hidden; transition: visibility 0s 0.5s; }
+}

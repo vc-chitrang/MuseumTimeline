@@ -24,6 +24,8 @@ const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 interface Props {
   id: number;
   onClose: () => void;
+  /** Called when the closing fade starts (the map behind should reappear). */
+  onClosing?: () => void;
   /** Reports the Tirthankara now shown (keeps the app in sync). */
   onChange?: (id: number) => void;
 }
@@ -81,11 +83,13 @@ function interleave(a: React.ReactElement[], b: React.ReactElement[] | null) {
   return b ? a.flatMap((layer, i) => [layer, b[i]]) : a;
 }
 
-export function TirthankaraView({ id, onClose, onChange }: Props) {
+export function TirthankaraView({ id, onClose, onClosing, onChange }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [cur, setCur] = useState(id);
   const [next, setNext] = useState<{ id: number; dir: 1 | -1 } | null>(null);
   const [details, setDetails] = useState<number | null>(null);
+  // Details page fully covering the scene (false again as soon as it starts closing).
+  const [detailsCover, setDetailsCover] = useState(false);
   const [closing, setClosing] = useState(false);
   // Art downloaded and decoded: the intro waits for it, otherwise on a slow
   // tablet the layers would finish animating before their pictures arrive.
@@ -138,8 +142,12 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
         s = (1 - v) * dir;
         o = clamp01((v - 0.32 - 0.22 * f) * 3); // far layers arrive first, after the old scene clears
       }
-      el.style.transform = `translate3d(0, ${(s * travel * f).toFixed(2)}px, 0)`;
-      el.style.opacity = o.toFixed(3);
+      // At rest, drop the transform entirely: a translate3d keeps every layer
+      // on its own GPU texture even when nothing moves.
+      el.style.transform = s === 0 ? '' : `translate3d(0, ${(s * travel * f).toFixed(2)}px, 0)`;
+      // (incoming layers keep an explicit value: their CSS default is hidden)
+      el.style.opacity = role === 'current' && o >= 1 ? '' : o.toFixed(3);
+      el.classList.toggle('is-gone', o <= 0);
     });
     root.querySelectorAll<HTMLElement>('.tview-title').forEach(el => {
       const incoming = el.classList.contains('is-in');
@@ -291,8 +299,9 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   const close = useCallback(() => {
     if (closing) return;
     setClosing(true);
+    onClosing?.();
     window.setTimeout(onClose, CLOSE_MS);
-  }, [closing, onClose]);
+  }, [closing, onClose, onClosing]);
 
   const t = TIRTHANKARAS[cur - 1];
   const n = next ? TIRTHANKARAS[next.id - 1] : null;
@@ -300,7 +309,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
   return (
     <div
       ref={rootRef}
-      className={`tview${!ready ? ' is-loading' : opening ? ' is-opening' : ''}${closing ? ' is-closing' : ''}${next ? ' is-moving' : ''}`}
+      className={`tview${!ready ? ' is-loading' : opening ? ' is-opening' : ''}${closing ? ' is-closing' : ''}${next ? ' is-moving' : ''}${details !== null && detailsCover ? ' has-details' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-label={t.name}
@@ -325,7 +334,7 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
       <Scrubber current={cur} onJump={goTo} />
 
       {/* Mid-transition, details belong to the Tirthankara being moved to */}
-      <button type="button" className="tview-info" aria-label={`About ${(n ?? t).name}`} onClick={() => setDetails(next?.id ?? cur)}>
+      <button type="button" className="tview-info" aria-label={`About ${(n ?? t).name}`} onClick={() => { setDetails(next?.id ?? cur); setDetailsCover(true); }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /><path d="M9 8h7M9 11.5h5" /></svg>
       </button>
 
@@ -334,7 +343,9 @@ export function TirthankaraView({ id, onClose, onChange }: Props) {
         <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>
       </div>
 
-      {details !== null && <DetailsModal id={details} onClose={() => setDetails(null)} />}
+      {details !== null && (
+        <DetailsModal id={details} onClosing={() => setDetailsCover(false)} onClose={() => setDetails(null)} />
+      )}
     </div>
   );
 }
