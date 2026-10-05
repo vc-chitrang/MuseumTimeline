@@ -42,8 +42,12 @@ const MIN_ZOOM = 0.8;
 
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
+/** A CSS length variable in px (sizes are in rem, which follow the fluid root size). */
 function cssPx(name: string): number {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
+  const root = getComputedStyle(document.documentElement);
+  const v = root.getPropertyValue(name).trim();
+  const n = parseFloat(v) || 0;
+  return v.endsWith('rem') ? n * parseFloat(root.fontSize) : n;
 }
 
 /** Keep a good part of the content on screen so the map can never be lost. */
@@ -129,7 +133,7 @@ export function usePanZoom(
     anim.current = null;
   };
 
-  const animateTo = useCallback((target: ViewState, duration = 750) => {
+  const animateTo = useCallback((target: ViewState, duration = 450) => {
     stopAnim();
     const from = { ...view.current };
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

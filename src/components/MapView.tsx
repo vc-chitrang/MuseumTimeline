@@ -161,7 +161,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                     d={`M${HUB.x} ${HUB.y} L${c.x} ${c.y}`}
                     style={vars({ '--d': delay(c.delay - 0.2, 0.5 + c.id * 0.02) })} />
                 ))}
-                <path className="beam" pathLength={1} d={beam} style={vars({ '--d': delay(1.2, 0.4) })} />
+                <path className="beam" pathLength={1} d={beam} style={vars({ '--d': delay(0.6, 0.4) })} />
               </>
             )}
             {layout.circles.filter(c => !c.ring).map(c => (
@@ -174,7 +174,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
           <div className="markers">
             {/* Places for the current mode */}
             {places.map((p, i) => {
-              const d = delay(0.9 + i * 0.12, 0.25 + i * 0.03);
+              const d = delay(0.4 + i * 0.04, 0.25 + i * 0.03);
               const labelSide = mode === 'moksha' ? MOKSHA_LABEL[p.key] ?? 'below' : 'below';
               const secondary = !(mode === 'moksha' && p.key === 'shikharji');
               const select = () => onSelect({ kind: 'place', key: p.key });
@@ -215,7 +215,7 @@ export function MapView({ ref, mode, selection, onSelect, onImageLoad, onInterac
                 <div className="marker-scale">
                   <button type="button"
                     className={`hub${on(activePlace === 'shikharji' && selection?.kind === 'place')}`}
-                    style={vars({ '--d': delay(1.3, 0.35) })}
+                    style={vars({ '--d': delay(0.5, 0.35) })}
                     aria-label="Sammed Shikharji: 20 Tirthankaras attained moksha here"
                     onClick={() => onSelect({ kind: 'place', key: 'shikharji' })}>
                     <span className="hub-count">20</span>

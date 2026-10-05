@@ -3,6 +3,18 @@
    Palette from Jain manuscript painting (Kalpasutra): paper, ink, sindoor,
    lapis, gold leaf, leaf green. Three radii, an 8-point spacing scale.
    Design base: 800 × 1280 portrait tablet; adapts to phones and landscape.
+
+   Sizing rules
+   * All sizes are rem, so the whole UI scales from one root size. The root
+     is a percentage of the browser default (respects the visitor's text-size
+     setting, WCAG 1.4.4) that grows gently with the screen: ~15px on phones,
+     16px on the 800px tablet, up to 18px on large screens.
+   * Spacing uses the 4/8-point scale --s1…--s8; text uses the type scale
+     --fs-xs…--fs-display (larger steps are fluid via clamp()).
+   * Hairlines (≤2px) stay in px to remain crisp. The map's coordinate space
+     (2040×1632 stage and its markers) stays in px: it scales with zoom.
+   * Touch targets are at least 44×44 px (WCAG 2.5.5 / Apple HIG).
+   * Breakpoints are in em, so they also follow browser text zoom.
    ========================================================================== */
 
 :root {
@@ -24,13 +36,24 @@
   --rule: rgba(176, 138, 60, 0.4);
 
   /* Shape & space */
-  --r-sm: 6px;
-  --r-md: 14px;
-  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
+  --r-sm: 0.375rem;
+  --r-md: 0.875rem;
+  --s1: 0.25rem; --s2: 0.5rem; --s3: 0.75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem; --s7: 3rem; --s8: 4rem;
 
   /* Type */
   --font-display: 'Tiro Devanagari Hindi', Georgia, serif;
   --font-body: 'Mukta', 'Segoe UI', system-ui, sans-serif;
+  /* Type scale (rem; larger steps fluid between a phone and a large screen) */
+  --fs-xs: 0.75rem;                                        /* 12  labels, captions (minimum) */
+  --fs-sm: 0.875rem;                                       /* 14  secondary text */
+  --fs-md: 1rem;                                           /* 16  body */
+  --fs-lg: 1.125rem;                                       /* 18  reading text */
+  --fs-xl: clamp(1.25rem, 1.15rem + 0.4vw, 1.375rem);      /* 20–22 */
+  --fs-2xl: clamp(1.5rem, 1.3rem + 0.8vw, 1.75rem);        /* 24–28 subheads */
+  --fs-3xl: clamp(1.875rem, 1.5rem + 1.6vw, 2.5rem);       /* 30–40 titles */
+  --fs-4xl: clamp(2.25rem, 1.7rem + 2.4vw, 3.5rem);        /* 36–56 page titles */
+  --fs-display: clamp(2.5rem, 1.9rem + 3vw, 4.5rem);       /* 40–72 hero name */
+  --tap: max(2.75rem, 44px);                               /* touch target: never under 44px */
 
   /* Paper grain (very faint) */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .08 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -38,15 +61,22 @@
   --manuscript-border: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='22'%3E%3Crect width='28' height='22' fill='%23A8362A'/%3E%3Cpath d='M0 3.5h28M0 18.5h28' stroke='%23B08A3C' stroke-width='1.2'/%3E%3Cpath d='M14 6.5c2.6 2 2.6 6.5 0 9-2.6-2.5-2.6-7 0-9z' fill='%23F4ECDD'/%3E%3Ccircle cx='3' cy='11' r='1.4' fill='%23F4ECDD'/%3E%3Ccircle cx='25' cy='11' r='1.4' fill='%23F4ECDD'/%3E%3C/svg%3E");
 
   /* Layout */
-  --header-h: 210px;
-  --nav-h: 76px;
-  --gutter: 24px;
+  --header-h: 13.125rem;
+  --nav-h: 4.75rem;
+  --gutter: 1.5rem;
   --ms: 1;   /* map marker scale (smaller on phones) */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Fluid root: 93.75% (15px) on phones → 100% (16px) at the 800px tablet →
+   112.5% (18px) cap. Percentages keep the visitor's own text-size setting. */
+html { font-size: clamp(93.75%, 87.5% + 0.25vmin, 112.5%); }
+body { font-size: var(--fs-md); }
+/* FitText: single line measured and shrunk to fit its box */
+.fit-text { display: inline-block; white-space: nowrap; }
 
 html, body {
   width: 100%;
@@ -55,7 +85,6 @@ html, body {
   background: var(--lapis-3);
   color: var(--on-dark);
   font-family: var(--font-body);
-  font-size: 16px;
   /* Tiro has a single weight: never fake a bold */
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
@@ -66,7 +95,7 @@ html, body {
 #root { position: fixed; inset: 0; }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
+button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 0.1875rem; }
 
 .sr-defs { position: absolute; width: 0; height: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -89,7 +118,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 /* Blurred copy of the map fills any space the map does not cover */
 .map-backdrop {
   position: absolute;
-  inset: -60px;
+  inset: -3.75rem;
   /* tiny pre-dimmed, pre-blurred copy: no live full-screen blur filter */
   background: url("/assets/images/india-map-blur.webp") center 60% / cover no-repeat;
   transform: scale(1.1);
@@ -111,7 +140,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   opacity: 0;
   transform: scale(1.04);
   transform-origin: 63% 45%;
-  transition: opacity 1.2s var(--ease-out), transform 1.8s var(--ease-out);
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
 .app.is-ready .map-intro { opacity: 1; transform: none; }
 
@@ -132,8 +161,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   pointer-events: none;
   background:
     radial-gradient(120% 90% at 50% 55%, transparent 55%, rgba(16, 24, 54, 0.5) 100%),
-    linear-gradient(to bottom, rgba(18, 27, 60, 0.97) 0, rgba(18, 27, 60, 0.92) calc(var(--header-h) * 0.72), rgba(18, 27, 60, 0.4) var(--header-h), transparent calc(var(--header-h) + 36px)),
-    linear-gradient(to top, rgba(18, 27, 60, 0.85) 0, transparent calc(var(--nav-h) + 80px));
+    linear-gradient(to bottom, rgba(18, 27, 60, 0.97) 0, rgba(18, 27, 60, 0.92) calc(var(--header-h) * 0.72), rgba(18, 27, 60, 0.4) var(--header-h), transparent calc(var(--header-h) + 2.25rem)),
+    linear-gradient(to top, rgba(18, 27, 60, 0.85) 0, transparent calc(var(--nav-h) + 5rem));
 }
 
 /* Lines ---------------------------------------------------------------- */
@@ -163,7 +192,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   opacity: 0;
-  transition: opacity 1.2s ease;
+  transition: opacity 0.4s ease;
 }
 .ring-orbit--outer { fill: none; stroke: rgba(214, 183, 113, 0.22); stroke-dasharray: 2 6; }
 .beam {
@@ -177,8 +206,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 }
 .app.is-ready .leader,
 .app.is-ready .spoke,
-.app.is-ready .beam { animation: draw 1.4s var(--ease-out) forwards; animation-delay: var(--d, 1.2s); }
-.app.is-ready .ring-orbit { opacity: 1; transition-delay: 1.1s; }
+.app.is-ready .beam { animation: draw 0.5s var(--ease-out) forwards; animation-delay: var(--d, 1.2s); }
+.app.is-ready .ring-orbit { opacity: 1; transition-delay: 0.5s; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 
 /* Markers ----------------------------------------------------------------- */
@@ -203,8 +232,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   transform: translateY(-30px);
 }
 .pin svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.app.is-ready .pin { animation: pin-drop 0.6s var(--ease-spring) forwards; animation-delay: var(--d, 0.9s); }
-@keyframes pin-drop { 0% { opacity: 0; transform: translateY(-30px); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+.app.is-ready .pin { animation: pin-drop 0.45s var(--ease-spring) forwards; animation-delay: var(--d, 0.9s); }
+@keyframes pin-drop { 0% { opacity: 0; transform: translateY(-1.875rem); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
 .pin.is-active svg path { stroke: var(--gold-light); stroke-width: 3; }
 
 /* Sammed Shikharji summit marker (centred on its location) */
@@ -224,7 +253,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   transform: scale(0.3);
 }
 .summit svg { width: 20px; height: 20px; fill: var(--paper); }
-.app.is-ready .summit { animation: pop 0.7s var(--ease-spring) forwards; animation-delay: var(--d, 0.9s); }
+.app.is-ready .summit { animation: pop 0.45s var(--ease-spring) forwards; animation-delay: var(--d, 0.9s); }
 .summit.is-active { box-shadow: 0 0 0 6px rgba(214, 183, 113, 0.55), 0 4px 10px rgba(10, 14, 32, 0.5); }
 
 /* Birthplace marker */
@@ -267,7 +296,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 .place-label--left { left: auto; right: 22px; top: -36px; transform: none; }
 .place-label--right { left: 22px; top: -36px; transform: none; }
 .summit ~ .place-label--left { top: -13px; right: 30px; }
-.app.is-ready .place-label { opacity: 1; transition-delay: 2s; }
+.app.is-ready .place-label { opacity: 1; transition-delay: 1s; }
 /* Single-Tirthankara places already show their name under the portrait */
 .app.is-ready .place-label--secondary { opacity: 0; }
 .app.is-ready .map-viewport.show-places .place-label--secondary,
@@ -290,7 +319,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 }
 /* Final state lives in the base style (the pop only fills backwards), so the
    focus dimming above can change opacity afterwards. */
-.app.is-ready .t-circle { opacity: 1; transform: none; animation: pop 0.6s var(--ease-spring) backwards; animation-delay: var(--d, 1.6s); }
+.app.is-ready .t-circle { opacity: 1; transform: none; animation: pop 0.45s var(--ease-spring) backwards; animation-delay: var(--d, 1.6s); }
 .portrait {
   position: absolute;
   inset: 0;
@@ -385,7 +414,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   opacity: 0;
   transform: scale(0.3);
 }
-.app.is-ready .hub { opacity: 1; transform: none; transition: opacity 0.35s ease; animation: pop 0.8s var(--ease-spring) backwards; animation-delay: var(--d, 1.3s); }
+.app.is-ready .hub { opacity: 1; transform: none; transition: opacity 0.35s ease; animation: pop 0.45s var(--ease-spring) backwards; animation-delay: var(--d, 1.3s); }
 .hub-count { font-family: var(--font-display); font-size: 42px; line-height: 0.95; color: var(--on-dark); }
 .hub-title { font-size: 13px; font-weight: 600; line-height: 1.15; margin-top: 2px; color: var(--on-dark); }
 .hub-sub { font-size: 12px; color: var(--gold-light); }
@@ -405,7 +434,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 .app.is-ready .map-viewport.has-focus .marker--place:not(.is-active) .place-label { opacity: 0; transition-delay: 0s; }
 
 /* Portraits glide to their new places while switching modes */
-.map-viewport.is-morphing .marker--circle { transition: transform 1.1s cubic-bezier(0.65, 0, 0.35, 1); }
+.map-viewport.is-morphing .marker--circle { transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1); }
 
 /* --------------------------------------------------------------------------
    Header
@@ -419,23 +448,23 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   text-align: center;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(-12px);
-  transition: opacity 0.9s var(--ease-out) 0.2s, transform 0.9s var(--ease-out) 0.2s;
+  transform: translateY(-0.75rem);
+  transition: opacity 0.45s var(--ease-out) 0.1s, transform 0.45s var(--ease-out) 0.1s;
 }
 .app.is-ready .app-header { opacity: 1; transform: none; }
-.eyebrow { font-size: 14px; font-weight: 600; color: var(--gold-light); }
+.eyebrow { font-size: var(--fs-sm); font-weight: 600; color: var(--gold-light); }
 .title {
   margin-top: var(--s1);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 56px;
+  font-size: var(--fs-4xl);
   line-height: 1.1;
   color: var(--on-dark);
-  animation: title-in 0.6s var(--ease-out);
+  animation: title-in 0.45s var(--ease-out);
 }
-@keyframes title-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.subtitle { max-width: 700px; margin: var(--s2) auto 0; font-size: 18px; line-height: 1.45; color: var(--on-dark); }
-.subtitle-hi { margin-top: var(--s1); font-family: var(--font-display); font-size: 18px; color: var(--on-dark-2); }
+@keyframes title-in { from { opacity: 0; transform: translateY(0.375rem); } to { opacity: 1; transform: none; } }
+.subtitle { max-width: 43.75rem; margin: var(--s2) auto 0; font-size: var(--fs-lg); line-height: 1.5; color: var(--on-dark); }
+.subtitle-hi { margin-top: var(--s1); font-family: var(--font-display); font-size: var(--fs-lg); color: var(--on-dark-2); }
 
 /* --------------------------------------------------------------------------
    Bottom bar: birth / moksha toggle + zoom
@@ -450,8 +479,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   z-index: 20;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.8s var(--ease-out) 0.6s, transform 0.8s var(--ease-out) 0.6s;
+  transform: translateY(1rem);
+  transition: opacity 0.45s var(--ease-out) 0.3s, transform 0.45s var(--ease-out) 0.3s;
 }
 .app.is-ready .bottom-bar { opacity: 1; transform: none; }
 
@@ -461,19 +490,19 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   grid-template-columns: 1fr 1fr;
   margin: 0;
   min-inline-size: 0;
-  padding: 3px;
+  padding: 0.1875rem;
   border: 1px solid rgba(244, 236, 221, 0.28);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: rgba(22, 33, 74, 0.94);
-  box-shadow: 0 8px 22px rgba(10, 14, 32, 0.4);
+  box-shadow: 0 0.5rem 1.375rem rgba(10, 14, 32, 0.4);
   pointer-events: auto;
 }
 .mode-thumb {
   position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc(50% - 3px);
+  top: 0.1875rem;
+  bottom: 0.1875rem;
+  left: 0.1875rem;
+  width: calc(50% - 0.1875rem);
   border-radius: var(--r-sm);
   background: var(--sindoor);
   transition: transform 0.35s var(--ease-out);
@@ -484,8 +513,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 156px;
-  min-height: 48px;
+  min-width: 9.75rem;
+  min-height: 3rem;
   padding: var(--s1) var(--s4);
   border-radius: var(--r-sm);
   cursor: pointer;
@@ -495,8 +524,8 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
 .mode-option input { position: absolute; opacity: 0; pointer-events: none; }
 .mode-option:has(input:focus-visible) { outline: 2px solid var(--gold-light); outline-offset: 2px; }
 .mode-radio { display: none; }
-.mode-text { display: flex; flex-direction: column; align-items: center; line-height: 1.15; font-size: 15px; font-weight: 600; }
-.mode-text small { font-family: var(--font-display); font-size: 13px; font-weight: 400; opacity: 0.85; }
+.mode-text { display: flex; flex-direction: column; align-items: center; line-height: 1.15; font-size: var(--fs-sm); font-weight: 600; }
+.mode-text small { font-family: var(--font-display); font-size: var(--fs-xs); font-weight: 400; opacity: 0.85; }
 .mode-option.is-checked { color: #fff; }
 
 .zoom-controls {
@@ -506,20 +535,20 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   z-index: 21;
   display: grid;
   grid-auto-flow: column;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   overflow: hidden;
   background: rgba(22, 33, 74, 0.94);
   border: 1px solid rgba(244, 236, 221, 0.28);
-  box-shadow: 0 8px 22px rgba(10, 14, 32, 0.4);
+  box-shadow: 0 0.5rem 1.375rem rgba(10, 14, 32, 0.4);
   opacity: 0;
-  transition: opacity 0.8s var(--ease-out) 2.3s;
+  transition: opacity 0.4s var(--ease-out) 1.2s;
 }
 .app.is-ready .zoom-controls { opacity: 1; }
 .zoom-controls.is-hidden { opacity: 0 !important; pointer-events: none; transition-delay: 0s !important; }
-.zoom-btn { width: 48px; height: 54px; font-size: 22px; line-height: 1; color: var(--on-dark); transition: background 0.2s ease; }
+.zoom-btn { width: 3rem; height: 3.375rem; font-size: var(--fs-xl); line-height: 1; color: var(--on-dark); transition: background 0.2s ease; }
 .zoom-btn + .zoom-btn { border-left: 1px solid rgba(244, 236, 221, 0.18); }
 .zoom-btn:active { background: rgba(244, 236, 221, 0.12); }
-.zoom-btn--reset { font-size: 18px; }
+.zoom-btn--reset { font-size: var(--fs-lg); }
 
 .hint {
   position: absolute;
@@ -528,13 +557,13 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   transform: translateX(-50%);
   padding: var(--s1) var(--s3);
   border-radius: var(--r-sm);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 0 6px 16px rgba(10, 14, 32, 0.35);
+  box-shadow: 0 0.375rem 1rem rgba(10, 14, 32, 0.35);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.4s ease;
   white-space: nowrap;
 }
 .hint.is-visible { opacity: 1; }
@@ -547,44 +576,50 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   left: 50%;
   bottom: calc(var(--nav-h) + var(--s4) + env(safe-area-inset-bottom, 0px));
   z-index: 10;
-  width: min(640px, calc(100% - 2 * var(--gutter)));
+  width: min(40rem, calc(100% - 2 * var(--gutter)));
   padding: var(--s5);
   border-radius: var(--r-md);
   background: var(--paper) var(--grain);
   color: var(--ink);
   border: 1px solid var(--rule);
-  box-shadow: 0 24px 60px rgba(10, 14, 32, 0.55);
-  transform: translate(-50%, 24px);
+  box-shadow: 0 1.5rem 3.75rem rgba(10, 14, 32, 0.55);
+  transform: translate(-50%, 1.5rem);
   opacity: 0;
   visibility: hidden;
   transition: transform 0.45s var(--ease-out), opacity 0.3s ease, visibility 0s linear 0.45s;
+  /* Never taller than the screen: the heading stays in view and only the
+     list of Tirthankaras scrolls (it used to push the heading off short screens). */
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--nav-h) - 2 * var(--s4) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
 }
+.card-body { display: flex; flex-direction: column; min-height: 0; }
 .info-card.is-open { transform: translate(-50%, 0); opacity: 1; visibility: visible; transition: transform 0.45s var(--ease-out), opacity 0.3s ease, visibility 0s; }
 .card-body { animation: card-in 0.35s var(--ease-out); }
-@keyframes card-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes card-in { from { opacity: 0; transform: translateY(0.375rem); } to { opacity: 1; transform: none; } }
 
 /* The single back button used across the app (round, icon only) */
 .back-btn {
-  width: 44px;
-  height: 44px;
+  width: var(--tap);
+  height: var(--tap);
   flex: none;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--paper);
   border: 1px solid rgba(42, 29, 20, 0.22);
-  box-shadow: 0 3px 10px rgba(30, 30, 50, 0.18);
+  box-shadow: 0 0.1875rem 0.625rem rgba(30, 30, 50, 0.18);
   color: var(--ink);
   transition: transform 0.15s ease, background 0.15s ease;
 }
-.back-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.back-btn svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .back-btn:active { transform: scale(0.92); background: var(--paper-2); }
 .card-back { margin-bottom: var(--s3); }
-.card-kicker { font-size: 14px; font-weight: 600; color: var(--sindoor); }
-.card-title { margin-top: var(--s1); font-family: var(--font-display); font-weight: 400; font-size: 40px; line-height: 1.1; color: var(--ink); }
-.card-hi { margin-top: var(--s1); font-size: 16px; color: var(--ink-2); }
-.card-hi [lang="hi"] { font-family: var(--font-display); font-size: 18px; }
-.card-text { margin-top: var(--s3); font-size: 17px; line-height: 1.5; color: var(--ink); }
+.card-kicker { font-size: var(--fs-sm); font-weight: 600; color: var(--sindoor); }
+.card-title { margin-top: var(--s1); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-3xl); line-height: 1.1; color: var(--ink); }
+.card-hi { margin-top: var(--s1); font-size: var(--fs-md); color: var(--ink-2); }
+.card-hi [lang="hi"] { font-family: var(--font-display); font-size: var(--fs-lg); }
+.card-text { margin-top: var(--s3); font-size: var(--fs-md); line-height: 1.5; color: var(--ink); }
 
 /* Tirthankaras at this place: figure in a small lapis arch, symbol seal,
    name and key facts. Tapping opens their scene. */
@@ -593,13 +628,15 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   display: grid;
   gap: var(--s2);
   margin-top: var(--s4);
-  max-height: min(42vh, 360px);
+  max-height: min(42vh, 22.5rem);
+  min-height: 6rem;
+  flex: 0 1 auto;
   overflow-y: auto;
   padding-right: var(--s1);
 }
-.place-list.is-multi { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.place-list::-webkit-scrollbar { width: 6px; }
-.place-list::-webkit-scrollbar-thumb { background: var(--sindoor); border-radius: 3px; }
+.place-list.is-multi { grid-template-columns: repeat(auto-fill, minmax(16.25rem, 1fr)); }
+.place-list::-webkit-scrollbar { width: 0.375rem; }
+.place-list::-webkit-scrollbar-thumb { background: var(--sindoor); border-radius: 0.1875rem; }
 .place-list::-webkit-scrollbar-button { display: none; }
 /* Browsers without ::-webkit-scrollbar (Firefox) get the standard properties.
    Chrome ignores the custom styling above if these are set, so keep them scoped. */
@@ -622,84 +659,98 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   transition: background 0.2s ease, transform 0.15s ease;
 }
 .pi:active { transform: scale(0.99); background: #E2D4B8; }
-.pi-art { position: relative; width: 72px; height: 92px; flex: none; }
+.pi-art { position: relative; width: 4.5rem; height: 5.75rem; flex: none; }
 .pi-niche {
   position: absolute;
   inset: 0;
-  border-radius: 36px 36px var(--r-sm) var(--r-sm);
+  border-radius: 2.25rem 2.25rem var(--r-sm) var(--r-sm);
   overflow: hidden;
   background: radial-gradient(70% 55% at 50% 35%, rgba(255, 236, 190, 0.55), transparent 70%), var(--lapis);
 }
-.pi-figure { position: absolute; left: 50%; bottom: 6px; width: 86%; aspect-ratio: 1356 / 1500; transform: translateX(-50%); }
+.pi-figure { position: absolute; left: 50%; bottom: 0.375rem; width: 86%; aspect-ratio: 1356 / 1500; transform: translateX(-50%); }
 .pi-figure .figure { position: absolute; inset: 0; left: 0; bottom: 0; width: 100%; height: 100%; transform: none; animation: none; }
 .pi-figure .figure-halo { display: none; }
 .pi-seal {
   position: absolute;
-  right: -8px;
-  bottom: -6px;
-  width: 36px;
-  height: 36px;
+  right: -0.5rem;
+  bottom: -0.375rem;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: var(--paper);
   border: 1.5px solid var(--sindoor);
-  box-shadow: 0 2px 6px rgba(42, 29, 20, 0.25);
+  box-shadow: 0 2px 0.375rem rgba(42, 29, 20, 0.25);
 }
 .pi-seal img { width: 78%; height: 78%; object-fit: contain; }
 .pi-text { display: flex; flex-direction: column; min-width: 0; padding-left: var(--s1); }
-.pi-kicker { font-size: 13px; font-weight: 600; color: var(--sindoor); }
-.pi-name { font-family: var(--font-display); font-size: 24px; line-height: 1.15; }
-.pi-meta { display: flex; flex-direction: column; margin-top: 2px; font-size: 14px; line-height: 1.35; color: var(--ink); }
+.pi-kicker { font-size: var(--fs-xs); font-weight: 600; color: var(--sindoor); }
+.pi-name { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: 1.15; }
+.pi-meta { display: flex; flex-direction: column; margin-top: 2px; font-size: var(--fs-sm); line-height: 1.5; color: var(--ink); }
 .pi-meta em { font-style: normal; color: var(--ink-2); margin-right: 2px; }
-.pi-go { font-size: 26px; line-height: 1; color: var(--sindoor); }
+.pi-go { font-size: var(--fs-2xl); line-height: 1; color: var(--sindoor); }
 
 /* --------------------------------------------------------------------------
    Responsive
    -------------------------------------------------------------------------- */
-@media (max-height: 1100px) and (orientation: portrait) {
-  :root { --header-h: 196px; }
-  .title { font-size: 48px; }
-  .subtitle { font-size: 17px; }
+@media (max-height: 68.75em) and (orientation: portrait) {
+  :root { --header-h: 12.25rem; }
+  .title { font-size: var(--fs-4xl); }
+  .subtitle { font-size: var(--fs-md); }
 }
 
 /* Landscape: compact header; the place card becomes a right-hand panel */
 @media (orientation: landscape) {
-  :root { --header-h: 150px; --nav-h: 70px; }
+  :root { --header-h: 9.375rem; --nav-h: 4.375rem; }
   .app-header { padding-top: calc(env(safe-area-inset-top, 0px) + var(--s5)); }
-  .title { font-size: 44px; }
-  .subtitle { font-size: 16px; margin-top: var(--s1); max-width: 640px; }
+  .title { font-size: var(--fs-3xl); }
+  .subtitle { font-size: var(--fs-md); margin-top: var(--s1); max-width: 40rem; }
   .subtitle-hi { display: none; }
-  .mode-option { min-height: 44px; min-width: 150px; }
+  .mode-option { min-height: 2.75rem; min-width: 9.375rem; }
   .info-card {
     left: auto;
     right: var(--gutter);
-    top: calc(var(--header-h) - 20px);
+    top: calc(var(--header-h) - 1.25rem);
     bottom: calc(var(--nav-h) + var(--s4) + env(safe-area-inset-bottom, 0px));
-    width: min(440px, 40vw);
+    width: min(27.5rem, 40vw);
     overflow-y: auto;
-    transform: translateX(24px);
+    transform: translateX(1.5rem);
   }
   .info-card.is-open { transform: none; }
   .place-list { max-height: none; }
 }
+/* Short landscape phones: the panel uses the full height (over the header) */
+@media (orientation: landscape) and (max-height: 30em) {
+  /* one-line header and smaller markers: the map gets the height */
+  :root { --ms: 0.5; --header-h: 4.5rem; }
+  .app-header { padding-top: calc(env(safe-area-inset-top, 0px) + var(--s3)); }
+  .eyebrow, .subtitle { display: none; }
+  .title { font-size: var(--fs-2xl); }
+  .info-card { top: calc(env(safe-area-inset-top, 0px) + var(--s4)); max-height: none; padding: var(--s4); }
+  /* compact heading so the list of Tirthankaras is visible without scrolling */
+  .card-back { margin-bottom: var(--s2); }
+  .card-title { font-size: var(--fs-2xl); }
+  .card-text { margin-top: var(--s2); }
+  .place-list { margin-top: var(--s3); }
+}
 
 /* Phones */
-@media (max-width: 600px) {
-  :root { --header-h: 190px; --nav-h: 70px; --gutter: 16px; --ms: 0.64; }
+@media (max-width: 37.5em) {
+  :root { --header-h: 11.875rem; --nav-h: 4.375rem; --gutter: 1rem; --ms: 0.64; }
   .app-header { padding: calc(env(safe-area-inset-top, 0px) + var(--s5)) var(--s4) 0; }
-  .title { font-size: 40px; }
-  .subtitle { font-size: 15px; }
-  .subtitle-hi { font-size: 16px; }
+  .title { font-size: var(--fs-3xl); }
+  .subtitle { font-size: var(--fs-sm); }
+  .subtitle-hi { font-size: var(--fs-md); }
   .mode-option { min-width: 0; padding: var(--s1) var(--s4); }
-  .mode-text { font-size: 14px; }
+  .mode-text { font-size: var(--fs-sm); }
   .info-card { padding: var(--s4); }
-  .card-title { font-size: 34px; }
+  .card-title { font-size: var(--fs-3xl); }
 }
-@media (max-width: 600px) and (max-height: 700px) { :root { --ms: 0.56; } }
+@media (max-width: 37.5em) and (max-height: 43.75em) { :root { --ms: 0.56; } }
 /* Phones: pinch replaces + and −; only "reset view" remains, and it appears
    once the map has been zoomed or moved away from the full view. */
-@media (max-width: 700px) {
+@media (max-width: 43.75em) {
   .zoom-controls {
     bottom: calc(var(--nav-h) + var(--s4) + env(safe-area-inset-bottom, 0px));
     border-radius: 50%;
@@ -710,7 +761,7 @@ button:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px
   }
   .app.is-ready .zoom-controls { opacity: 0; pointer-events: none; }
   .zoom-btn:not(.zoom-btn--reset) { display: none; }
-  .zoom-btn--reset { width: 48px; height: 48px; }
+  .zoom-btn--reset { width: max(3rem, var(--tap)); height: max(3rem, var(--tap)); }
   .app.is-ready:has(.map-viewport.is-moved) .zoom-controls:not(.is-hidden) { opacity: 1; pointer-events: auto; transform: none; }
 }
 

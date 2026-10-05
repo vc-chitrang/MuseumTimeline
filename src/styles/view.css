@@ -52,7 +52,7 @@
 .bird {
   position: absolute;
   left: 0;
-  width: calc(36px * var(--bs, 1));
+  width: calc(2.25rem * var(--bs, 1));
   animation: fly linear infinite;
 }
 .bird svg { display: block; width: 100%; fill: #4a4f5e; animation: flap 0.9s ease-in-out infinite; transform-origin: 50% 60%; }
@@ -98,8 +98,8 @@
 
 /* Opening: every layer rises in at its own speed (far layers barely move). */
 .tview.is-opening .layer {
-  animation: layer-rise 1.25s cubic-bezier(0.2, 0.9, 0.25, 1) both;
-  animation-delay: calc(var(--enter) * 70ms);
+  animation: layer-rise 0.8s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(var(--enter) * 50ms);
 }
 @keyframes layer-rise {
   from { opacity: 0; transform: translate3d(0, calc(var(--f) * 48vh), 0); }
@@ -178,7 +178,7 @@
   width: var(--ped-w);
   height: auto;
   transform: translateX(-50%);
-  filter: drop-shadow(0 12px 14px rgba(40, 25, 10, 0.35));
+  filter: drop-shadow(0 0.75rem 0.875rem rgba(40, 25, 10, 0.35));
 }
 .figure {
   position: absolute;
@@ -238,9 +238,10 @@
 .tview-name {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + var(--s5));
-  left: 76px;
-  right: 76px;
-  height: 84px;
+  /* clear of the back button on both sides (kept symmetric so the name is centred) */
+  left: calc(var(--s4) + var(--tap) + var(--s2));
+  right: calc(var(--s4) + var(--tap) + var(--s2));
+  height: 5.25rem;
   pointer-events: none;
   z-index: 5;
 }
@@ -252,23 +253,25 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(40px, 5.6vh, 72px);
+  /* display size, also capped by height for short landscape phones; long
+     names shrink further to fit the box (FitText) */
+  font-size: min(var(--fs-display), 8vh);
   line-height: 1;
   white-space: nowrap;
   color: var(--ink);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 22px rgba(244, 236, 221, 0.95);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 1.375rem rgba(244, 236, 221, 0.95);
 }
-.tview.is-opening .tview-title:not(.is-in) { animation: title-drop 0.8s 0.35s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
-@keyframes title-drop { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+.tview.is-opening .tview-title:not(.is-in) { animation: title-drop 0.45s 0.25s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes title-drop { from { opacity: 0; transform: translateY(-1rem); } to { opacity: 1; transform: none; } }
 .tview-title.is-in { opacity: 0; }
 /* Soft paper-coloured light behind the name keeps it readable over foliage */
 .tview-name::before {
   content: "";
   position: absolute;
-  inset: -16px 10%;
+  inset: calc(-1 * var(--s4)) 10%;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(244, 236, 221, 0.85), rgba(244, 236, 221, 0.4) 60%, transparent);
-  filter: blur(6px);
+  filter: blur(0.375rem);
 }
 
 /* Back button -------------------------------------------------------------- */
@@ -278,7 +281,7 @@
   left: var(--s4);
   z-index: 6;
 }
-.tview.is-opening .tview-back { animation: title-drop 0.6s 0.2s ease both; }
+.tview.is-opening .tview-back { animation: title-drop 0.4s 0.15s ease both; }
 
 /* Timeline scrubber: a plain ruler on a lapis strip ----------------------- */
 .scrub {
@@ -290,33 +293,33 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 46px;
+  width: max(2.875rem, var(--tap));
   padding: var(--s1) 0;
   border-radius: var(--r-md);
   background: rgba(22, 33, 74, 0.82);
   border: 1px solid rgba(244, 236, 221, 0.25);
-  box-shadow: 0 8px 22px rgba(10, 14, 32, 0.3);
+  box-shadow: 0 0.5rem 1.375rem rgba(10, 14, 32, 0.3);
 }
-.tview.is-opening .scrub { animation: rail-in 0.7s 0.6s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
-@keyframes rail-in { from { opacity: 0; transform: translate(24px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
+.tview.is-opening .scrub { animation: rail-in 0.45s 0.4s cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+@keyframes rail-in { from { opacity: 0; transform: translate(1.5rem, -50%); } to { opacity: 1; transform: translateY(-50%); } }
 
 .scrub-step {
-  width: 40px;
-  height: 40px;
+  width: var(--tap);
+  height: var(--tap);
   border-radius: var(--r-sm);
   display: grid;
   place-items: center;
   color: var(--on-dark);
   transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
-.scrub-step svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.scrub-step svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .scrub-step:active { transform: scale(0.88); background: rgba(244, 236, 221, 0.12); }
 .scrub-step:disabled { opacity: 0.25; }
 
 .scrub-track {
   position: relative;
-  width: 46px;
-  height: min(44vh, 420px);
+  width: 2.875rem;
+  height: min(44vh, 26.25rem);
   margin: var(--s2) 0;
   cursor: grab;
   touch-action: none;
@@ -339,31 +342,31 @@
 .scrub-tick {
   position: absolute;
   left: 50%;
-  width: 8px;
+  width: 0.5rem;
   height: 1.5px;
-  margin: -0.75px 0 0 -4px;
+  margin: -0.75px 0 0 calc(-1 * var(--s1));
   background: rgba(244, 236, 221, 0.55);
   pointer-events: none;
   transition: background 0.2s ease;
 }
-.scrub-tick.is-major { width: 14px; margin-left: -7px; background: var(--on-dark); }
+.scrub-tick.is-major { width: 0.875rem; margin-left: -0.4375rem; background: var(--on-dark); }
 .scrub-tick.is-passed { background: var(--gold-light); }
 .scrub-bead {
   position: absolute;
   left: 50%;
   top: calc(var(--pos) * 100%);
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
+  width: 2.125rem;
+  height: 2.125rem;
+  margin: -1.0625rem 0 0 -1.0625rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 15px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #fff;
   background: var(--sindoor);
   border: 2px solid var(--paper);
-  box-shadow: 0 3px 8px rgba(10, 14, 32, 0.45);
+  box-shadow: 0 0.1875rem 0.5rem rgba(10, 14, 32, 0.45);
   /* Snaps straight to the chosen Tirthankara (no wait for the scene) */
   transition: top 0.22s ease-out, transform 0.15s ease;
   pointer-events: none;
@@ -384,14 +387,14 @@
   background: var(--paper) var(--grain);
   color: var(--ink);
   border: 1px solid var(--rule);
-  box-shadow: 0 8px 22px rgba(30, 30, 50, 0.3);
+  box-shadow: 0 0.5rem 1.375rem rgba(30, 30, 50, 0.3);
   pointer-events: none;
   animation: bubble-in 0.16s ease-out;
 }
-.scrub-bubble img { width: 44px; height: 44px; object-fit: contain; border-radius: var(--r-sm); background: var(--paper-2); }
-.scrub-bubble span { display: flex; flex-direction: column; font-family: var(--font-display); font-size: 22px; line-height: 1.1; }
-.scrub-bubble b { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--sindoor); }
-@keyframes bubble-in { from { opacity: 0; transform: translate(8px, -50%); } to { opacity: 1; transform: translateY(-50%); } }
+.scrub-bubble img { width: 2.75rem; height: 2.75rem; object-fit: contain; border-radius: var(--r-sm); background: var(--paper-2); }
+.scrub-bubble span { display: flex; flex-direction: column; font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1.1; }
+.scrub-bubble b { font-family: var(--font-body); font-size: var(--fs-xs); font-weight: 700; color: var(--sindoor); }
+@keyframes bubble-in { from { opacity: 0; transform: translate(0.5rem, -50%); } to { opacity: 1; transform: translateY(-50%); } }
 
 /* Details button: the arch, the app's signature shape */
 .tview-info {
@@ -399,20 +402,20 @@
   right: var(--s4);
   bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s5));
   z-index: 6;
-  width: 54px;
-  height: 64px;
-  border-radius: 27px 27px var(--r-sm) var(--r-sm);
+  width: 3.375rem;
+  height: 4rem;
+  border-radius: 1.6875rem 1.6875rem var(--r-sm) var(--r-sm);
   display: grid;
   place-items: center;
   color: #fff;
   background: var(--sindoor);
   border: 2px solid var(--paper);
-  box-shadow: 0 6px 16px rgba(60, 20, 10, 0.35);
+  box-shadow: 0 0.375rem 1rem rgba(60, 20, 10, 0.35);
   transition: transform 0.15s ease, background 0.2s ease;
 }
-.tview-info svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tview-info svg { width: 1.625rem; height: 1.625rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .tview-info:active { transform: scale(0.92); background: var(--sindoor-2); }
-.tview.is-opening .tview-info { animation: title-drop 0.6s 0.9s ease both; }
+.tview.is-opening .tview-info { animation: title-drop 0.4s 0.5s ease both; }
 
 /* Swipe hint (first open only) */
 .swipe-hint {
@@ -427,28 +430,28 @@
   transition: opacity 0.5s ease;
   pointer-events: none;
 }
-.swipe-hint.is-visible { opacity: 1; transition-delay: 1.6s; }
+.swipe-hint.is-visible { opacity: 1; transition-delay: 1.2s; }
 .swipe-hint svg {
-  width: 36px;
-  height: 20px;
+  width: 2.25rem;
+  height: 1.25rem;
   fill: none;
   stroke: var(--paper);
   stroke-width: 2.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 1px 0.1875rem rgba(0, 0, 0, 0.5));
   animation: hint-up 1.8s ease-in-out infinite;
 }
-.swipe-hint svg + svg { margin-top: -8px; animation-delay: 0.15s; opacity: 0.6; }
-@keyframes hint-up { 0%, 100% { transform: translateY(5px); opacity: 0.3; } 50% { transform: translateY(-5px); opacity: 1; } }
+.swipe-hint svg + svg { margin-top: calc(-1 * var(--s2)); animation-delay: 0.15s; opacity: 0.6; }
+@keyframes hint-up { 0%, 100% { transform: translateY(0.3125rem); opacity: 0.3; } 50% { transform: translateY(-0.3125rem); opacity: 1; } }
 
-@media (max-width: 700px) {
-  .tview-name { left: 84px; right: 84px; }
-  .scrub { right: 6px; width: 40px; }
-  .scrub-track { width: 40px; height: min(40vh, 330px); }
-  .scrub-step { width: 36px; height: 36px; }
-  .scrub-bead { width: 30px; height: 30px; margin: -15px 0 0 -15px; font-size: 14px; }
-  .tview-info { width: 50px; height: 60px; border-radius: 25px 25px var(--r-sm) var(--r-sm); right: var(--s3); }
+@media (max-width: 43.75em) {
+  .tview-name { left: calc(var(--s3) + var(--tap) + var(--s2)); right: calc(var(--s3) + var(--tap) + var(--s2)); }
+  .scrub { right: 0.375rem; width: var(--tap); }
+  .scrub-track { width: 2.5rem; height: min(40vh, 20.625rem); }
+  .scrub-step { width: var(--tap); height: var(--tap); }
+  .scrub-bead { width: 1.875rem; height: 1.875rem; margin: -0.9375rem 0 0 -0.9375rem; font-size: var(--fs-sm); }
+  .tview-info { width: 3.125rem; height: 3.75rem; border-radius: 1.5625rem 1.5625rem var(--r-sm) var(--r-sm); right: var(--s3); }
   .tview-back { left: var(--s3); }
 }
 @media (orientation: landscape) {
@@ -470,11 +473,11 @@
   left: 50%;
   top: 50%;
   z-index: 4;
-  width: 44px;
-  height: 44px;
-  margin: -22px 0 0 -22px;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -1.375rem 0 0 -1.375rem;
   border-radius: 50%;
-  border: 3px solid rgba(244, 236, 221, 0.45);
+  border: 0.1875rem solid rgba(244, 236, 221, 0.45);
   border-top-color: var(--sindoor);
   opacity: 0;
   pointer-events: none;
@@ -488,7 +491,7 @@
 @media (prefers-reduced-motion: reduce) {
   .tview.is-opening .layer {
     animation-name: layer-rise-soft !important;
-    animation-duration: 0.7s !important;
+    animation-duration: 0.5s !important;
     animation-delay: calc(var(--enter) * 40ms) !important;
     animation-iteration-count: 1 !important;
   }
@@ -502,7 +505,7 @@
 
 /* Phones: the details page covers the whole screen, so the scene under it
    stops being drawn once the page has slid up (frees graphics memory). */
-@media (max-width: 700px) {
+@media (max-width: 43.75em) {
   .tview.has-details .sky,
   .tview.has-details .birds,
   .tview.has-details .meadow,

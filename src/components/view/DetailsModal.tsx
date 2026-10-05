@@ -3,6 +3,7 @@ import { COLOURS, PLACES, TIRTHANKARAS, ordinal } from '../../data/tirthankaras'
 import { DESCRIPTIONS, KEVALA_TREES } from '../../data/details';
 import { Figure, SCENE } from './SceneArt';
 import { BackButton } from '../BackButton';
+import { FitText } from '../FitText';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -76,7 +77,7 @@ export function DetailsModal({ id, onClose, onClosing }: {
           <div className="dm-body">
             <div className="dm-title">
               <p className="dm-kicker">{ordinal(t.id)} Tirthankara</p>
-              <h2>{t.name}</h2>
+              <FitText as="h2" min={1.5}>{t.name}</FitText>
               <p className="dm-sub"><span lang="hi">{t.hi}</span>{t.alias && <> · {t.alias}</>}</p>
             </div>
 

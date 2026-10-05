@@ -100,14 +100,14 @@ function mokshaLayout(shape: Shape): ModeLayout {
       id, ring: true, size: ringSize, labelAlways: false, labelSide: sideFor(a), labelFar: false,
       x: R.x + R.rx * Math.cos(a),
       y: R.y + R.ry * Math.sin(a),
-      delay: 1.7 + i * 0.05
+      delay: 0.7 + i * 0.03
     };
   });
 
   const singles = TIRTHANKARAS.filter(t => t.moksha !== 'shikharji').map((t, i): CircleLayout => ({
     id: t.id, ring: false, size: LARGE_CIRCLE_SIZE, labelAlways: true, labelSide: 'bottom', labelFar: false,
     ...(S[t.moksha] as Point),
-    delay: 1.5 + i * 0.12
+    delay: 0.6 + i * 0.06
   }));
 
   const circles = [...stagger(ring), ...singles].sort((a, b) => a.id - b.id);
@@ -144,7 +144,7 @@ function birthLayout(shape: Shape): ModeLayout {
       id: it.id, ring: false, size: SMALL_CIRCLE_SIZE, labelAlways: false, labelSide: sideFor(a), labelFar: false,
       x: E.x + E.rx * Math.cos(a),
       y: E.y + E.ry * Math.sin(a),
-      delay: 1.5 + ((it.id - 1) * 0.05)
+      delay: 0.6 + ((it.id - 1) * 0.03)
     };
   });
 

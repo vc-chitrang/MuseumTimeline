@@ -4,11 +4,13 @@ import { treeImage } from '../../data/details';
 import { DetailsModal } from './DetailsModal';
 import { Scrubber } from './Scrubber';
 import { BackButton } from '../BackButton';
+import { FitText } from '../FitText';
 import { Birds, Figure, SCENE, Sky } from './SceneArt';
 import { ownImages, preload, preloadAll, sceneImages } from '../../lib/preload';
 
 const BASE = import.meta.env.BASE_URL;
-const TRANSITION_MS = 1150;
+/** Page transition: a full-screen parallax move, kept brisk (UI rule: 200–500 ms for feedback). */
+const TRANSITION_MS = 750;
 const CLOSE_MS = 520;
 /** Fraction of a full swipe needed to commit to the next Tirthankara. */
 const COMMIT_AT = 0.22;
@@ -114,7 +116,7 @@ export function TirthankaraView({ id, onClose, onClosing, onChange }: Props) {
   }, [id]);
   useEffect(() => {
     if (!ready) return;
-    const intro = window.setTimeout(() => setOpening(false), 1900);
+    const intro = window.setTimeout(() => setOpening(false), 1300);
     const hideHint = window.setTimeout(() => setHint(false), 6000);
     return () => { window.clearTimeout(intro); window.clearTimeout(hideHint); };
   }, [ready]);
@@ -330,8 +332,8 @@ export function TirthankaraView({ id, onClose, onClosing, onChange }: Props) {
 
       {/* Name: the only text on the scene */}
       <div className="tview-name" aria-live="polite">
-        <h1 key={t.id} className={`tview-title${n ? ' is-out' : ''}`}>{t.name}</h1>
-        {n && <h1 key={n.id} className="tview-title is-in" aria-hidden="true">{n.name}</h1>}
+        <FitText as="h1" key={t.id} className={`tview-title${n ? ' is-out' : ''}`} min={1.25}>{t.name}</FitText>
+        {n && <FitText as="h1" key={n.id} className="tview-title is-in" aria-hidden="true" min={1.25}>{n.name}</FitText>}
       </div>
 
       <BackButton className="tview-back" label="Back to map" onClick={close} />

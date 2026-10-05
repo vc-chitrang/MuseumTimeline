@@ -3,6 +3,7 @@ import { PLACES, TIRTHANKARAS, ordinal, placeOf, type Mode, type PlaceKey } from
 import type { Selection } from './MapView';
 import { BackButton } from './BackButton';
 import { Figure } from './view/SceneArt';
+import { FitText } from './FitText';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -61,7 +62,7 @@ function PlaceBody({ placeKey, mode, onOpen }: { placeKey: PlaceKey; mode: Mode;
                 </span>
                 <span className="pi-text">
                   <span className="pi-kicker">{ordinal(t.id)} Tirthankara</span>
-                  <span className="pi-name">{t.name}</span>
+                  <FitText className="pi-name" min={1.125}>{t.name}</FitText>
                   <span className="pi-meta">
                     <span><em>Symbol</em> {t.emblem}</span>
                     <span><em>{mode === 'birth' ? 'Moksha at' : 'Born in'}</em> {other.name}</span>
